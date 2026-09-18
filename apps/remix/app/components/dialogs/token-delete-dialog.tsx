@@ -19,21 +19,30 @@ import { Trans } from '@lingui/react/macro';
 import type { ApiToken } from '@prisma/client';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { match } from 'ts-pattern';
 import { z } from 'zod';
 
-import { useCurrentTeam } from '~/providers/team';
+import { useOptionalCurrentTeam } from '~/providers/team';
+
+import { type DialogScope, TEAM_DIALOG_SCOPE } from './scoped-dialog-props';
 
 export type TokenDeleteDialogProps = {
   token: Pick<ApiToken, 'id' | 'name'>;
+  scope?: DialogScope;
   onDelete?: () => void;
   children?: React.ReactNode;
 };
 
-export default function TokenDeleteDialog({ token, onDelete, children }: TokenDeleteDialogProps) {
+export default function TokenDeleteDialog({
+  token,
+  scope = TEAM_DIALOG_SCOPE,
+  onDelete,
+  children,
+}: TokenDeleteDialogProps) {
   const { _ } = useLingui();
   const { toast } = useToast();
 
-  const team = useCurrentTeam();
+  const team = useOptionalCurrentTeam();
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -47,11 +56,21 @@ export default function TokenDeleteDialog({ token, onDelete, children }: TokenDe
 
   type TDeleteTokenByIdMutationSchema = z.infer<typeof ZTokenDeleteDialogSchema>;
 
-  const { mutateAsync: deleteTokenMutation } = trpc.apiToken.delete.useMutation({
-    onSuccess() {
-      onDelete?.();
-    },
-  });
+  const utils = trpc.useUtils();
+
+  const onSuccess = async () => {
+    await Promise.all([
+      utils.apiToken.getMany.invalidate(),
+      utils.apiToken.organisation.find.invalidate(),
+      utils.apiToken.instance.find.invalidate(),
+    ]);
+
+    onDelete?.();
+  };
+
+  const deleteTeamToken = trpc.apiToken.delete.useMutation({ onSuccess });
+  const deleteOrganisationToken = trpc.apiToken.organisation.delete.useMutation({ onSuccess });
+  const deleteInstanceToken = trpc.apiToken.instance.delete.useMutation({ onSuccess });
 
   const form = useForm<TDeleteTokenByIdMutationSchema>({
     resolver: zodResolver(ZTokenDeleteDialogSchema),
@@ -62,10 +81,21 @@ export default function TokenDeleteDialog({ token, onDelete, children }: TokenDe
 
   const onSubmit = async () => {
     try {
-      await deleteTokenMutation({
-        id: token.id,
-        teamId: team?.id,
-      });
+      await match(scope)
+        .with({ kind: 'team' }, async () => {
+          if (!team) {
+            throw new Error('No team in context');
+          }
+
+          await deleteTeamToken.mutateAsync({ id: token.id, teamId: team.id });
+        })
+        .with({ kind: 'organisation' }, async ({ organisationId }) => {
+          await deleteOrganisationToken.mutateAsync({ id: token.id, organisationId });
+        })
+        .with({ kind: 'instance' }, async () => {
+          await deleteInstanceToken.mutateAsync({ id: token.id });
+        })
+        .exhaustive();
 
       toast({
         title: _(msg`Token deleted`),

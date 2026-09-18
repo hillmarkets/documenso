@@ -34,7 +34,9 @@ import { useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
 import type { z } from 'zod';
 
-import { useCurrentTeam } from '~/providers/team';
+import { useOptionalCurrentTeam } from '~/providers/team';
+
+import { type DialogScope, TEAM_DIALOG_SCOPE } from './scoped-dialog-props';
 
 const NEVER_EXPIRE = 'NEVER' as const;
 
@@ -56,13 +58,14 @@ type TCreateTokenFormSchema = z.infer<typeof ZCreateTokenFormSchema>;
 
 export type TokenCreateDialogProps = {
   trigger?: React.ReactNode;
+  scope?: DialogScope;
 } & Omit<DialogPrimitive.DialogProps, 'children'>;
 
-export const TokenCreateDialog = ({ trigger, ...props }: TokenCreateDialogProps) => {
+export const TokenCreateDialog = ({ trigger, scope = TEAM_DIALOG_SCOPE, ...props }: TokenCreateDialogProps) => {
   const { _ } = useLingui();
   const { toast } = useToast();
 
-  const team = useCurrentTeam();
+  const team = useOptionalCurrentTeam();
 
   const [open, setOpen] = useState(false);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
@@ -75,15 +78,29 @@ export const TokenCreateDialog = ({ trigger, ...props }: TokenCreateDialogProps)
     },
   });
 
-  const { mutateAsync: createToken } = trpc.apiToken.create.useMutation();
+  const createTeamToken = trpc.apiToken.create.useMutation();
+  const createOrganisationToken = trpc.apiToken.organisation.create.useMutation();
+  const createInstanceToken = trpc.apiToken.instance.create.useMutation();
 
   const onSubmit = async ({ tokenName, expirationDate }: TCreateTokenFormSchema) => {
+    const expiration = expirationDate === NEVER_EXPIRE ? null : expirationDate;
+
     try {
-      const { token } = await createToken({
-        teamId: team.id,
-        tokenName,
-        expirationDate: expirationDate === NEVER_EXPIRE ? null : expirationDate,
-      });
+      const { token } = await match(scope)
+        .with({ kind: 'team' }, async () => {
+          if (!team) {
+            throw new Error('No team in context');
+          }
+
+          return createTeamToken.mutateAsync({ teamId: team.id, tokenName, expirationDate: expiration });
+        })
+        .with({ kind: 'organisation' }, async ({ organisationId }) =>
+          createOrganisationToken.mutateAsync({ organisationId, tokenName, expirationDate: expiration }),
+        )
+        .with({ kind: 'instance' }, async () =>
+          createInstanceToken.mutateAsync({ tokenName, expirationDate: expiration }),
+        )
+        .exhaustive();
 
       setCreatedToken(token);
     } catch (err) {
@@ -156,6 +173,21 @@ export const TokenCreateDialog = ({ trigger, ...props }: TokenCreateDialogProps)
                 />
               </div>
             </div>
+
+            {scope.kind !== 'team' && (
+              <p className="text-muted-foreground text-xs">
+                {scope.kind === 'organisation' ? (
+                  <Trans>
+                    Send an <code>x-team-id</code> header to call team endpoints with this token.
+                  </Trans>
+                ) : (
+                  <Trans>
+                    Send an <code>x-team-id</code> or <code>x-organisation-id</code> header to target a tenant with this
+                    token.
+                  </Trans>
+                )}
+              </p>
+            )}
 
             <DialogFooter>
               <Button type="button" onClick={() => setOpen(false)}>

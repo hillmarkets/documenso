@@ -21,19 +21,23 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useCurrentTeam } from '~/providers/team';
+import { type DialogScope, forScope, TEAM_DIALOG_SCOPE } from './scoped-dialog-props';
 
 export type WebhookDeleteDialogProps = {
   webhook: Pick<Webhook, 'id' | 'webhookUrl'>;
+  scope?: DialogScope;
   onDelete?: () => void;
   children: React.ReactNode;
 };
 
-export const WebhookDeleteDialog = ({ webhook, children }: WebhookDeleteDialogProps) => {
+export const WebhookDeleteDialog = ({
+  webhook,
+  scope = TEAM_DIALOG_SCOPE,
+  onDelete,
+  children,
+}: WebhookDeleteDialogProps) => {
   const { _ } = useLingui();
   const { toast } = useToast();
-
-  const team = useCurrentTeam();
 
   const [open, setOpen] = useState(false);
 
@@ -47,7 +51,21 @@ export const WebhookDeleteDialog = ({ webhook, children }: WebhookDeleteDialogPr
 
   type TDeleteWebhookFormSchema = z.infer<typeof ZDeleteWebhookFormSchema>;
 
-  const { mutateAsync: deleteWebhook } = trpc.webhook.deleteWebhook.useMutation();
+  const utils = trpc.useUtils();
+
+  const onSuccess = async () => {
+    await Promise.all([
+      utils.webhook.getTeamWebhooks.invalidate(),
+      utils.webhook.organisation.find.invalidate(),
+      utils.webhook.instance.find.invalidate(),
+    ]);
+
+    onDelete?.();
+  };
+
+  const deleteTeamWebhook = trpc.webhook.deleteWebhook.useMutation({ onSuccess });
+  const deleteOrganisationWebhook = trpc.webhook.organisation.delete.useMutation({ onSuccess });
+  const deleteInstanceWebhook = trpc.webhook.instance.delete.useMutation({ onSuccess });
 
   const form = useForm<TDeleteWebhookFormSchema>({
     resolver: zodResolver(ZDeleteWebhookFormSchema),
@@ -58,7 +76,12 @@ export const WebhookDeleteDialog = ({ webhook, children }: WebhookDeleteDialogPr
 
   const onSubmit = async () => {
     try {
-      await deleteWebhook({ id: webhook.id });
+      await forScope<Promise<unknown>>(scope, {
+        team: async () => deleteTeamWebhook.mutateAsync({ id: webhook.id }),
+        organisation: async (organisationId) =>
+          deleteOrganisationWebhook.mutateAsync({ id: webhook.id, organisationId }),
+        instance: async () => deleteInstanceWebhook.mutateAsync({ id: webhook.id }),
+      });
 
       toast({
         title: _(msg`Webhook deleted`),

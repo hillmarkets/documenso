@@ -32,9 +32,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
-import { useCurrentTeam } from '~/providers/team';
-
 import { WebhookMultiSelectCombobox } from '../general/webhook-multiselect-combobox';
+import { type DialogScope, forScope, TEAM_DIALOG_SCOPE } from './scoped-dialog-props';
 
 const ZCreateWebhookFormSchema = ZCreateWebhookRequestSchema;
 
@@ -42,13 +41,12 @@ type TCreateWebhookFormSchema = z.infer<typeof ZCreateWebhookFormSchema>;
 
 export type WebhookCreateDialogProps = {
   trigger?: React.ReactNode;
+  scope?: DialogScope;
 } & Omit<DialogPrimitive.DialogProps, 'children'>;
 
-export const WebhookCreateDialog = ({ trigger, ...props }: WebhookCreateDialogProps) => {
+export const WebhookCreateDialog = ({ trigger, scope = TEAM_DIALOG_SCOPE, ...props }: WebhookCreateDialogProps) => {
   const { _ } = useLingui();
   const { toast } = useToast();
-
-  const team = useCurrentTeam();
 
   const [open, setOpen] = useState(false);
 
@@ -62,15 +60,26 @@ export const WebhookCreateDialog = ({ trigger, ...props }: WebhookCreateDialogPr
     },
   });
 
-  const { mutateAsync: createWebhook } = trpc.webhook.createWebhook.useMutation();
+  const utils = trpc.useUtils();
 
-  const onSubmit = async ({ enabled, eventTriggers, secret, webhookUrl }: TCreateWebhookFormSchema) => {
+  const onSuccess = async () => {
+    await Promise.all([
+      utils.webhook.getTeamWebhooks.invalidate(),
+      utils.webhook.organisation.find.invalidate(),
+      utils.webhook.instance.find.invalidate(),
+    ]);
+  };
+
+  const createTeamWebhook = trpc.webhook.createWebhook.useMutation({ onSuccess });
+  const createOrganisationWebhook = trpc.webhook.organisation.create.useMutation({ onSuccess });
+  const createInstanceWebhook = trpc.webhook.instance.create.useMutation({ onSuccess });
+
+  const onSubmit = async (data: TCreateWebhookFormSchema) => {
     try {
-      await createWebhook({
-        enabled,
-        eventTriggers,
-        secret,
-        webhookUrl,
+      await forScope(scope, {
+        team: async () => createTeamWebhook.mutateAsync(data),
+        organisation: async (organisationId) => createOrganisationWebhook.mutateAsync({ ...data, organisationId }),
+        instance: async () => createInstanceWebhook.mutateAsync(data),
       });
 
       setOpen(false);
