@@ -4,6 +4,7 @@ import { getEnvelopeById, getEnvelopeWhereInput } from '@documenso/lib/server-on
 import { generateAuditLogPdf } from '@documenso/lib/server-only/pdf/generate-audit-log-pdf';
 import { generateCertificatePdf } from '@documenso/lib/server-only/pdf/generate-certificate-pdf';
 import { getApiTokenByToken } from '@documenso/lib/server-only/public-api/get-api-token-by-token';
+import { resolveApiTokenScope } from '@documenso/lib/server-only/public-api/resolve-api-token-scope';
 import { isDocumentCompleted } from '@documenso/lib/utils/document';
 import { buildTeamWhereQuery } from '@documenso/lib/utils/teams';
 import { prisma } from '@documenso/prisma';
@@ -23,11 +24,14 @@ import {
 } from './download.types';
 
 /**
- * Resolve and validate an API token from the Authorization header.
+ * Resolve and validate an API token from the Authorization header, then resolve
+ * the team it is acting in (its own team for TEAM tokens, `x-team-id` otherwise).
  *
  * Supports both "Authorization: Bearer api_xxx" and "Authorization: api_xxx".
  */
-const resolveApiToken = async (authorizationHeader: string | undefined) => {
+const resolveApiToken = async (headers: Headers) => {
+  const authorizationHeader = headers.get('authorization');
+
   const [token] = (authorizationHeader || '').split('Bearer ').filter((s) => s.length > 0);
 
   if (!token) {
@@ -38,13 +42,22 @@ const resolveApiToken = async (authorizationHeader: string | undefined) => {
 
   const apiToken = await getApiTokenByToken({ token });
 
-  if (apiToken.user.disabled) {
+  const { scope, user } = await resolveApiTokenScope({ apiToken, headers });
+
+  if (user.disabled) {
     throw new AppError(AppErrorCode.UNAUTHORIZED, {
       message: 'User is disabled',
     });
   }
 
-  return apiToken;
+  if (scope.teamId === null) {
+    throw new AppError(AppErrorCode.INVALID_REQUEST, {
+      message: 'x-team-id header is required for ORGANISATION and INSTANCE tokens on this endpoint',
+      statusCode: 400,
+    });
+  }
+
+  return { ...apiToken, user, teamId: scope.teamId };
 };
 
 export const downloadRoute = new Hono<HonoEnv>()
@@ -63,7 +76,7 @@ export const downloadRoute = new Hono<HonoEnv>()
         const { envelopeItemId } = c.req.valid('param');
         const { version } = c.req.valid('query');
 
-        const apiToken = await resolveApiToken(c.req.header('authorization'));
+        const apiToken = await resolveApiToken(c.req.raw.headers);
 
         logger.info({
           auth: 'api',
@@ -154,7 +167,7 @@ export const downloadRoute = new Hono<HonoEnv>()
       try {
         const { envelopeId } = c.req.valid('param');
 
-        const apiToken = await resolveApiToken(c.req.header('authorization'));
+        const apiToken = await resolveApiToken(c.req.raw.headers);
 
         logger.info({
           auth: 'api',
@@ -228,7 +241,7 @@ export const downloadRoute = new Hono<HonoEnv>()
       try {
         const { envelopeId } = c.req.valid('param');
 
-        const apiToken = await resolveApiToken(c.req.header('authorization'));
+        const apiToken = await resolveApiToken(c.req.raw.headers);
 
         logger.info({
           auth: 'api',
@@ -325,7 +338,7 @@ export const downloadRoute = new Hono<HonoEnv>()
     try {
       const { documentId, version } = c.req.valid('param');
 
-      const apiToken = await resolveApiToken(c.req.header('authorization'));
+      const apiToken = await resolveApiToken(c.req.raw.headers);
 
       logger.info({
         auth: 'api',

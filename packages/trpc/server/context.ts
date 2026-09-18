@@ -1,5 +1,6 @@
 import type { SessionUser } from '@documenso/auth/server/lib/session/session';
 import { getOptionalSession } from '@documenso/auth/server/lib/utils/get-session';
+import type { ApiScope } from '@documenso/lib/server-only/public-api/resolve-api-token-scope';
 import type { RootApiLog } from '@documenso/lib/types/api-logs';
 import type { ApiRequestMetadata } from '@documenso/lib/universal/extract-request-metadata';
 import { alphaid } from '@documenso/lib/universal/id';
@@ -49,6 +50,7 @@ export const createTrpcContext = async ({ c, requestSource }: CreateTrpcContextO
       logger: trpcLogger,
       session: null,
       user: null,
+      scope: null,
       teamId,
       req,
       res,
@@ -60,6 +62,7 @@ export const createTrpcContext = async ({ c, requestSource }: CreateTrpcContextO
     logger: trpcLogger,
     session,
     user,
+    scope: null,
     teamId,
     req,
     res,
@@ -77,6 +80,8 @@ export type TrpcContext = (
       user: SessionUser;
     }
 ) & {
+  /** Resolved API-token scope. Null for session requests. */
+  scope: ApiScope | null;
   teamId: number | undefined;
   req: Request;
   res: Response;

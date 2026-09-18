@@ -1,75 +1,108 @@
-import { AppError, genericErrorCodeToTrpcErrorCodeMap } from '@documenso/lib/errors/app-error';
+import { AppError, AppErrorCode } from '@documenso/lib/errors/app-error';
 import { getApiTokenByToken } from '@documenso/lib/server-only/public-api/get-api-token-by-token';
+import { resolveApiTokenScope } from '@documenso/lib/server-only/public-api/resolve-api-token-scope';
 import { assertUserNotDisabled } from '@documenso/lib/server-only/user/assert-user-not-disabled';
 import type { TrpcApiLog } from '@documenso/lib/types/api-logs';
 import type { ApiRequestMetadata } from '@documenso/lib/universal/extract-request-metadata';
 import { alphaid } from '@documenso/lib/universal/id';
 import { isAdmin } from '@documenso/lib/utils/is-admin';
-import { initTRPC, TRPCError } from '@trpc/server';
-import type { AnyZodObject } from 'zod';
+import { TRPCError } from '@trpc/server';
 
-import { dataTransformer } from '../utils/data-transformer';
 import type { TrpcContext } from './context';
+import { enforceApiTokenScope } from './scope-guard';
+import { t } from './trpc-instance';
 
-// Can't import type from trpc-to-openapi because it breaks build, not sure why.
-export type TrpcRouteMeta = {
-  openapi?: {
-    enabled?: boolean;
-    method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
-    path: `/${string}`;
-    summary?: string;
-    description?: string;
-    protect?: boolean;
-    tags?: string[];
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    contentTypes?: ('application/json' | 'application/x-www-form-urlencoded' | (string & {}))[];
-    deprecated?: boolean;
-    requestHeaders?: AnyZodObject;
-    responseHeaders?: AnyZodObject;
-    successDescription?: string;
-    errorResponses?: number[] | Record<number, string>;
-  };
-} & Record<string, unknown>;
-
-const t = initTRPC
-  .meta<TrpcRouteMeta>()
-  .context<TrpcContext>()
-  .create({
-    transformer: dataTransformer,
-    errorFormatter(opts) {
-      const { shape, error, ctx } = opts;
-
-      const originalError = error.cause;
-
-      let data: Record<string, unknown> = shape.data;
-
-      // Default unknown errors to 400, since if you're throwing an AppError it is expected
-      // that you already know what you're doing.
-      if (originalError instanceof AppError) {
-        if (originalError.headers && ctx) {
-          for (const [headerKey, headerValue] of Object.entries(originalError.headers)) {
-            ctx.res.headers.append(headerKey, headerValue);
-          }
-        }
-
-        data = {
-          ...data,
-          appError: AppError.toJSON(originalError),
-          code: originalError.code,
-          httpStatus: originalError.statusCode ?? genericErrorCodeToTrpcErrorCodeMap[originalError.code]?.status ?? 400,
-        };
-      }
-
-      return {
-        ...shape,
-        data,
-      };
-    },
-  });
+export type { TrpcRouteMeta } from './trpc-instance';
 
 /**
  * Middlewares
  */
+
+/**
+ * Paths under which a procedure does not require a target team. Everything else
+ * on the v2 surface is team-scoped and needs `ctx.teamId`.
+ */
+const TEAM_OPTIONAL_PATH_PREFIXES = ['/organisation', '/admin', '/team'];
+
+const isTeamOptionalPath = (openapiPath: string) =>
+  TEAM_OPTIONAL_PATH_PREFIXES.some((prefix) => openapiPath.startsWith(prefix));
+
+type ApiTokenContextOptions = {
+  ctx: TrpcContext;
+  authorizationHeader: string;
+  openapiPath: string;
+  baseLogAttributes: TrpcApiLog;
+};
+
+/**
+ * Shared by the authenticated, maybeAuthenticated and admin middlewares.
+ * Validates the bearer token, resolves the tenant it targets and returns the
+ * context patch every API-token request runs with.
+ */
+const buildApiTokenContext = async ({
+  ctx,
+  authorizationHeader,
+  openapiPath,
+  baseLogAttributes,
+}: ApiTokenContextOptions) => {
+  // Support for both "Authorization: Bearer api_xxx" and "Authorization: api_xxx"
+  const [token] = authorizationHeader.split('Bearer ').filter((s) => s.length > 0);
+
+  if (!token) {
+    throw new Error('Token was not provided for authenticated middleware');
+  }
+
+  const apiToken = await getApiTokenByToken({ token });
+
+  const { scope, user, auditName } = await resolveApiTokenScope({ apiToken, headers: ctx.req.headers });
+
+  // Reject API requests from a disabled account. Presenting an API token is an
+  // explicit attempt to act under that account, so we reject rather than downgrade.
+  assertUserNotDisabled(user);
+
+  if (scope.teamId === null && !isTeamOptionalPath(openapiPath)) {
+    throw new AppError(AppErrorCode.INVALID_REQUEST, {
+      message: 'x-team-id header is required for ORGANISATION and INSTANCE tokens on this endpoint',
+      statusCode: 400,
+    });
+  }
+
+  // Attach identifying attributes to the logger so every subsequent log line
+  // within this request (including errors) inherits them.
+  const logger = ctx.logger.child({
+    ...baseLogAttributes,
+    auth: 'api',
+    userId: user.id,
+    apiTokenId: apiToken.id,
+  } satisfies TrpcApiLog);
+
+  logger.info({
+    position: 'trpcProcedure',
+  });
+
+  const isUntargetedInstanceCall = scope.kind === 'instance' && scope.teamId === null && scope.organisationId === null;
+
+  return {
+    apiToken,
+    ctxPatch: {
+      ...ctx,
+      logger,
+      user,
+      session: null,
+      scope,
+      // -1 matches the sentinel the session branch uses for "no team".
+      teamId: scope.teamId ?? -1,
+      metadata: {
+        ...ctx.metadata,
+        auditUser: isUntargetedInstanceCall
+          ? { id: user.id, email: user.email, name: user.name }
+          : { id: null, email: null, name: auditName },
+        auth: 'api',
+      } satisfies ApiRequestMetadata,
+    },
+  };
+};
+
 export const authenticatedMiddleware = t.middleware(async ({ ctx, next, path, meta }) => {
   // Auth-independent log bindings. `auth` is set per-branch below since it
   // depends on which auth path was taken; `ctx.metadata.auth` here is still
@@ -88,54 +121,14 @@ export const authenticatedMiddleware = t.middleware(async ({ ctx, next, path, me
 
   // Taken from `authenticatedMiddleware` in `@documenso/api/v1/middleware/authenticated.ts`.
   if (authorizationHeader && isApiV2) {
-    // Support for both "Authorization: Bearer api_xxx" and "Authorization: api_xxx"
-    const [token] = (authorizationHeader || '').split('Bearer ').filter((s) => s.length > 0);
-
-    if (!token) {
-      throw new Error('Token was not provided for authenticated middleware');
-    }
-
-    const apiToken = await getApiTokenByToken({ token });
-
-    // Reject API requests from a disabled account. The token may still be
-    // present in the DB (e.g. before `disableUser` runs) so we enforce here.
-    assertUserNotDisabled(apiToken.user);
-
-    const trpcApiV2Logger = ctx.logger.child({
-      ...baseLogAttributes,
-      auth: 'api',
-      userId: apiToken.user.id,
-      apiTokenId: apiToken.id,
-    } satisfies TrpcApiLog);
-
-    trpcApiV2Logger.info({
-      position: 'trpcProcedure',
+    const { ctxPatch } = await buildApiTokenContext({
+      ctx,
+      authorizationHeader,
+      openapiPath: meta?.openapi?.path ?? '',
+      baseLogAttributes,
     });
 
-    return await next({
-      ctx: {
-        ...ctx,
-        logger: trpcApiV2Logger,
-        user: apiToken.user,
-        teamId: apiToken.teamId,
-        session: null,
-        metadata: {
-          ...ctx.metadata,
-          auditUser: apiToken.team
-            ? {
-                id: null,
-                email: null,
-                name: apiToken.team.name,
-              }
-            : {
-                id: apiToken.user.id,
-                email: apiToken.user.email,
-                name: apiToken.user.name,
-              },
-          auth: 'api',
-        } satisfies ApiRequestMetadata,
-      },
-    });
+    return await next({ ctx: ctxPatch });
   }
 
   if (!ctx.session) {
@@ -200,57 +193,14 @@ export const maybeAuthenticatedMiddleware = t.middleware(async ({ ctx, next, pat
 
   // Taken from `authenticatedMiddleware` in `@documenso/api/v1/middleware/authenticated.ts`.
   if (authorizationHeader && isApiV2) {
-    // Support for both "Authorization: Bearer api_xxx" and "Authorization: api_xxx"
-    const [token] = (authorizationHeader || '').split('Bearer ').filter((s) => s.length > 0);
-
-    if (!token) {
-      throw new Error('Token was not provided for authenticated middleware');
-    }
-
-    const apiToken = await getApiTokenByToken({ token });
-
-    // Reject API requests from a disabled account. Presenting an API token is
-    // an explicit attempt to act under that account, so we don't downgrade to
-    // anonymous here — we reject.
-    assertUserNotDisabled(apiToken.user);
-
-    // Attach identifying attributes to the logger so every subsequent log line
-    // within this request (including errors) inherits them.
-    const trpcApiV2Logger = ctx.logger.child({
-      ...baseLogAttributes,
-      auth: 'api',
-      userId: apiToken.user.id,
-      apiTokenId: apiToken.id,
-    } satisfies TrpcApiLog);
-
-    trpcApiV2Logger.info({
-      position: 'trpcProcedure',
+    const { ctxPatch } = await buildApiTokenContext({
+      ctx,
+      authorizationHeader,
+      openapiPath: meta?.openapi?.path ?? '',
+      baseLogAttributes,
     });
 
-    return await next({
-      ctx: {
-        ...ctx,
-        logger: trpcApiV2Logger,
-        user: apiToken.user,
-        teamId: apiToken.teamId,
-        session: null,
-        metadata: {
-          ...ctx.metadata,
-          auditUser: apiToken.team
-            ? {
-                id: null,
-                email: null,
-                name: apiToken.team.name,
-              }
-            : {
-                id: apiToken.user.id,
-                email: apiToken.user.email,
-                name: apiToken.user.name,
-              },
-          auth: 'api',
-        } satisfies ApiRequestMetadata,
-      },
-    });
+    return await next({ ctx: ctxPatch });
   }
 
   // Treat a disabled session as anonymous. Most routes wired through
@@ -301,7 +251,35 @@ export const maybeAuthenticatedMiddleware = t.middleware(async ({ ctx, next, pat
   });
 });
 
-export const adminMiddleware = t.middleware(async ({ ctx, next, path }) => {
+export const adminMiddleware = t.middleware(async ({ ctx, next, path, meta }) => {
+  const authorizationHeader = ctx.req.headers.get('authorization');
+
+  const isApiV2 = Boolean(meta?.openapi?.path);
+
+  if (authorizationHeader && isApiV2) {
+    const { apiToken, ctxPatch } = await buildApiTokenContext({
+      ctx,
+      authorizationHeader,
+      openapiPath: meta?.openapi?.path ?? '',
+      baseLogAttributes: {
+        path,
+        auth: null,
+        source: ctx.metadata.source,
+        trpcMiddleware: 'admin',
+        unverifiedTeamId: ctx.teamId,
+      },
+    });
+
+    if (apiToken.scope !== 'INSTANCE') {
+      throw new AppError(AppErrorCode.FORBIDDEN, {
+        message: 'This endpoint requires an INSTANCE-scoped API token',
+        statusCode: 403,
+      });
+    }
+
+    return await next({ ctx: ctxPatch });
+  }
+
   if (!ctx.session || !ctx.user) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
@@ -390,7 +368,7 @@ export const procedureMiddleware = t.middleware(async ({ ctx, next, path }) => {
  */
 export const router = t.router;
 export const procedure = t.procedure.use(procedureMiddleware);
-export const authenticatedProcedure = t.procedure.use(authenticatedMiddleware);
+export const authenticatedProcedure = t.procedure.use(authenticatedMiddleware).use(enforceApiTokenScope);
 // While this is functionally the same as `procedure`, it's useful for indicating purpose
-export const maybeAuthenticatedProcedure = t.procedure.use(maybeAuthenticatedMiddleware);
+export const maybeAuthenticatedProcedure = t.procedure.use(maybeAuthenticatedMiddleware).use(enforceApiTokenScope);
 export const adminProcedure = t.procedure.use(adminMiddleware);
