@@ -4,15 +4,17 @@ import OrganisationGroupSchema from '@documenso/prisma/generated/zod/modelSchema
 import { OrganisationMemberSchema } from '@documenso/prisma/generated/zod/modelSchema/OrganisationMemberSchema';
 import { z } from 'zod';
 
-// export const getOrganisationMembersMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'GET',
-//     path: '/organisation/{teamId}/members',
-//     summary: 'Find organisation members',
-//     description: 'Find all members of a organisation',
-//     tags: ['Organisation'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const getOrganisationMembersMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'GET',
+    path: '/organisation/{organisationId}/member',
+    summary: 'Find organisation members',
+    description: 'Find all members of a organisation',
+    tags: ['Organisation'],
+  },
+};
 
 export const ZFindOrganisationMembersRequestSchema = ZFindSearchParamsSchema.extend({
   organisationId: z.string(),

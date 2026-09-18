@@ -1,15 +1,17 @@
 import { TeamMemberRole } from '@prisma/client';
 import { z } from 'zod';
 
-// export const updateTeamMemberMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'POST',
-//     path: '/team/member/update',
-//     summary: 'Update team member',
-//     description: 'Update team member',
-//     tags: ['Team'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const updateTeamMemberMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'POST',
+    path: '/team/{teamId}/member/{memberId}/update',
+    summary: 'Update team member',
+    description: 'Update team member',
+    tags: ['Team'],
+  },
+};
 
 export const ZUpdateTeamMemberRequestSchema = z.object({
   teamId: z.number(),

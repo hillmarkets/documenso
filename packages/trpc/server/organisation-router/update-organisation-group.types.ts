@@ -2,7 +2,7 @@ import { ZNameSchema } from '@documenso/lib/types/name';
 import { OrganisationMemberRole } from '@prisma/client';
 import { z } from 'zod';
 
-// export const updateOrganisationGroupMeta: TrpcOpenApiMeta = {
+// export const updateOrganisationGroupMeta: TrpcRouteMeta = {
 //   openapi: {
 //     method: 'POST',
 //     path: '/organisation/groups/{id}',

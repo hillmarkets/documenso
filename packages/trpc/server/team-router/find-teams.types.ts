@@ -3,15 +3,17 @@ import TeamSchema from '@documenso/prisma/generated/zod/modelSchema/TeamSchema';
 import { TeamMemberRole } from '@prisma/client';
 import { z } from 'zod';
 
-// export const getTeamsMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'GET',
-//     path: '/team/teams',
-//     summary: 'Get teams',
-//     description: 'Get all teams you are a member of',
-//     tags: ['team'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const getTeamsMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'GET',
+    path: '/team',
+    summary: 'Get teams',
+    description: 'Get all teams you are a member of',
+    tags: ['team'],
+  },
+};
 
 export const ZFindTeamsRequestSchema = ZFindSearchParamsSchema.extend({
   organisationId: z.string(),

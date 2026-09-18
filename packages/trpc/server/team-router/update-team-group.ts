@@ -9,6 +9,7 @@ import { authenticatedProcedure } from '../trpc';
 import { ZUpdateTeamGroupRequestSchema, ZUpdateTeamGroupResponseSchema } from './update-team-group.types';
 
 export const updateTeamGroupRoute = authenticatedProcedure
+  // Session-only: the input carries only a group id, which cannot be tied to a tenant by the scope guard.
   // .meta(updateTeamGroupMeta)
   .input(ZUpdateTeamGroupRequestSchema)
   .output(ZUpdateTeamGroupResponseSchema)

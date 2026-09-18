@@ -7,10 +7,14 @@ import { prisma } from '@documenso/prisma';
 import { OrganisationGroupType, OrganisationMemberRole, TeamMemberRole } from '@documenso/prisma/generated/types';
 
 import { authenticatedProcedure } from '../trpc';
-import { ZCreateTeamGroupsRequestSchema, ZCreateTeamGroupsResponseSchema } from './create-team-groups.types';
+import {
+  createTeamGroupsMeta,
+  ZCreateTeamGroupsRequestSchema,
+  ZCreateTeamGroupsResponseSchema,
+} from './create-team-groups.types';
 
 export const createTeamGroupsRoute = authenticatedProcedure
-  // .meta(createTeamGroupsMeta)
+  .meta(createTeamGroupsMeta)
   .input(ZCreateTeamGroupsRequestSchema)
   .output(ZCreateTeamGroupsResponseSchema)
   .mutation(async ({ input, ctx }) => {

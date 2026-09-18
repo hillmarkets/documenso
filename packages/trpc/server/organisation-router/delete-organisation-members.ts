@@ -14,12 +14,13 @@ import { prisma } from '@documenso/prisma';
 
 import { authenticatedProcedure } from '../trpc';
 import {
+  deleteOrganisationMembersMeta,
   ZDeleteOrganisationMembersRequestSchema,
   ZDeleteOrganisationMembersResponseSchema,
 } from './delete-organisation-members.types';
 
 export const deleteOrganisationMembersRoute = authenticatedProcedure
-  //   .meta(deleteOrganisationMembersMeta)
+  .meta(deleteOrganisationMembersMeta)
   .input(ZDeleteOrganisationMembersRequestSchema)
   .output(ZDeleteOrganisationMembersResponseSchema)
   .mutation(async ({ ctx, input }) => {

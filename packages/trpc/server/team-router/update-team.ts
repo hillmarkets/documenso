@@ -2,10 +2,10 @@ import { updateTeam } from '@documenso/lib/server-only/team/update-team';
 import { updateTeamPublicProfile } from '@documenso/lib/server-only/team/update-team-public-profile';
 
 import { authenticatedProcedure } from '../trpc';
-import { ZUpdateTeamRequestSchema, ZUpdateTeamResponseSchema } from './update-team.types';
+import { updateTeamMeta, ZUpdateTeamRequestSchema, ZUpdateTeamResponseSchema } from './update-team.types';
 
 export const updateTeamRoute = authenticatedProcedure
-  //   .meta(updateTeamMeta)
+  .meta(updateTeamMeta)
   .input(ZUpdateTeamRequestSchema)
   .output(ZUpdateTeamResponseSchema)
   .mutation(async ({ input, ctx }) => {

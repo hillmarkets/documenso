@@ -6,10 +6,14 @@ import { Prisma } from '@prisma/client';
 import { unique } from 'remeda';
 
 import { authenticatedProcedure } from '../trpc';
-import { ZFindTeamGroupsRequestSchema, ZFindTeamGroupsResponseSchema } from './find-team-groups.types';
+import {
+  getTeamGroupsMeta,
+  ZFindTeamGroupsRequestSchema,
+  ZFindTeamGroupsResponseSchema,
+} from './find-team-groups.types';
 
 export const findTeamGroupsRoute = authenticatedProcedure
-  // .meta(getTeamGroupsMeta)
+  .meta(getTeamGroupsMeta)
   .input(ZFindTeamGroupsRequestSchema)
   .output(ZFindTeamGroupsResponseSchema)
   .query(async ({ input, ctx }) => {

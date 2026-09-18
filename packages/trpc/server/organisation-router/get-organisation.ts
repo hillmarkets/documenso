@@ -2,10 +2,14 @@ import { AppError, AppErrorCode } from '@documenso/lib/errors/app-error';
 import { prisma } from '@documenso/prisma';
 
 import { authenticatedProcedure } from '../trpc';
-import { ZGetOrganisationRequestSchema, ZGetOrganisationResponseSchema } from './get-organisation.types';
+import {
+  getOrganisationMeta,
+  ZGetOrganisationRequestSchema,
+  ZGetOrganisationResponseSchema,
+} from './get-organisation.types';
 
 export const getOrganisationRoute = authenticatedProcedure
-  //   .meta(getOrganisationMeta)
+  .meta(getOrganisationMeta)
   .input(ZGetOrganisationRequestSchema)
   .output(ZGetOrganisationResponseSchema)
   .query(async ({ input, ctx }) => {

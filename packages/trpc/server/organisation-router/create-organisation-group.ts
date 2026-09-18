@@ -8,12 +8,13 @@ import { OrganisationGroupType } from '@prisma/client';
 
 import { authenticatedProcedure } from '../trpc';
 import {
+  createOrganisationGroupMeta,
   ZCreateOrganisationGroupRequestSchema,
   ZCreateOrganisationGroupResponseSchema,
 } from './create-organisation-group.types';
 
 export const createOrganisationGroupRoute = authenticatedProcedure
-  // .meta(createOrganisationGroupMeta)
+  .meta(createOrganisationGroupMeta)
   .input(ZCreateOrganisationGroupRequestSchema)
   .output(ZCreateOrganisationGroupResponseSchema)
   .mutation(async ({ input, ctx }) => {

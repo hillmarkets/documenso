@@ -6,12 +6,13 @@ import { prisma } from '@documenso/prisma';
 
 import { authenticatedProcedure } from '../trpc';
 import {
+  deleteOrganisationMemberInvitesMeta,
   ZDeleteOrganisationMemberInvitesRequestSchema,
   ZDeleteOrganisationMemberInvitesResponseSchema,
 } from './delete-organisation-member-invites.types';
 
 export const deleteOrganisationMemberInvitesRoute = authenticatedProcedure
-  //   .meta(deleteOrganisationMemberInvitesMeta)
+  .meta(deleteOrganisationMemberInvitesMeta)
   .input(ZDeleteOrganisationMemberInvitesRequestSchema)
   .output(ZDeleteOrganisationMemberInvitesResponseSchema)
   .mutation(async ({ ctx, input }) => {

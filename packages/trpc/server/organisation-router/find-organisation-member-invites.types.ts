@@ -3,15 +3,17 @@ import { OrganisationMemberInviteSchema } from '@documenso/prisma/generated/zod/
 import { OrganisationMemberInviteStatus } from '@prisma/client';
 import { z } from 'zod';
 
-// export const getOrganisationMemberInvitesMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'GET',
-//     path: '/organisation/{teamId}/members/pending',
-//     summary: 'Find organisation members pending',
-//     description: 'Find all members of a organisation pending',
-//     tags: ['Organisation'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const getOrganisationMemberInvitesMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'GET',
+    path: '/organisation/{organisationId}/member/invite',
+    summary: 'Find organisation members pending',
+    description: 'Find all members of a organisation pending',
+    tags: ['Organisation'],
+  },
+};
 
 export const ZFindOrganisationMemberInvitesRequestSchema = ZFindSearchParamsSchema.extend({
   organisationId: z.string(),

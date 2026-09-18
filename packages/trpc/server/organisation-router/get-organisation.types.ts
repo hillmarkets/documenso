@@ -6,15 +6,17 @@ import SubscriptionSchema from '@documenso/prisma/generated/zod/modelSchema/Subs
 import TeamSchema from '@documenso/prisma/generated/zod/modelSchema/TeamSchema';
 import { z } from 'zod';
 
-// export const getOrganisationMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'GET',
-//     path: '/organisation/{teamReference}',
-//     summary: 'Get organisation',
-//     description: 'Get an organisation by ID or URL',
-//     tags: ['Organisation'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const getOrganisationMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'GET',
+    path: '/organisation/{organisationReference}',
+    summary: 'Get organisation',
+    description: 'Get an organisation by ID or URL',
+    tags: ['Organisation'],
+  },
+};
 
 export const ZGetOrganisationRequestSchema = z.object({
   organisationReference: z.string().describe('The ID or URL of the organisation.'),

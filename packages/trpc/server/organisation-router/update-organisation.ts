@@ -7,10 +7,14 @@ import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 import { authenticatedProcedure } from '../trpc';
-import { ZUpdateOrganisationRequestSchema, ZUpdateOrganisationResponseSchema } from './update-organisation.types';
+import {
+  updateOrganisationMeta,
+  ZUpdateOrganisationRequestSchema,
+  ZUpdateOrganisationResponseSchema,
+} from './update-organisation.types';
 
 export const updateOrganisationRoute = authenticatedProcedure
-  //   .meta(updateOrganisationMeta)
+  .meta(updateOrganisationMeta)
   .input(ZUpdateOrganisationRequestSchema)
   .output(ZUpdateOrganisationResponseSchema)
   .mutation(async ({ input, ctx }) => {

@@ -7,12 +7,13 @@ import { OrganisationGroupType } from '@prisma/client';
 
 import { authenticatedProcedure } from '../trpc';
 import {
+  deleteOrganisationGroupMeta,
   ZDeleteOrganisationGroupRequestSchema,
   ZDeleteOrganisationGroupResponseSchema,
 } from './delete-organisation-group.types';
 
 export const deleteOrganisationGroupRoute = authenticatedProcedure
-  // .meta(deleteOrganisationGroupMeta)
+  .meta(deleteOrganisationGroupMeta)
   .input(ZDeleteOrganisationGroupRequestSchema)
   .output(ZDeleteOrganisationGroupResponseSchema)
   .mutation(async ({ input, ctx }) => {
