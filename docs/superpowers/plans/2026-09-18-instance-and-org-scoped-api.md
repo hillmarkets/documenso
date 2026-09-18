@@ -58,18 +58,20 @@
 
 **Files:** none (git + environment)
 
-- [ ] **Step 1: Fork and re-point remotes**
+- [ ] **Step 1: Create the private repo and re-point remotes**
+
+GitHub forks of public repos cannot be private, so this is a private standalone repo
+tracking upstream via a git remote. It can be flipped to public later.
 
 ```bash
 cd /Users/andrewbenson/Developer/documenso
-gh repo fork documenso/documenso --clone=false --remote=false
 git remote rename origin upstream
-git remote add origin git@github.com:andrewbenson/documenso.git
 git fetch --unshallow upstream
+gh repo create hillmarkets/documenso --private --description "Hill Markets fork of Documenso" --source=. --remote=origin
 git branch --set-upstream-to=upstream/main main
 git remote -v
 ```
-Expected: `origin` → `andrewbenson/documenso`, `upstream` → `documenso/documenso`; `git log --oneline | wc -l` is in the thousands.
+Expected: `origin` → `hillmarkets/documenso` (private), `upstream` → `documenso/documenso`; `git log --oneline | wc -l` is in the thousands.
 
 - [ ] **Step 2: Install deps and start Postgres**
 
@@ -1956,5 +1958,5 @@ Expected: all green. The pre-existing v1/v2 API tests must still pass — they e
 
 ```bash
 git push -u origin feat/scoped-api
-gh pr create --repo andrewbenson/documenso --base main --title "feat: instance- and organisation-scoped API tokens and webhooks" --body-file docs/superpowers/specs/2026-09-18-instance-and-org-scoped-api-design.md
+gh pr create --repo hillmarkets/documenso --base main --title "feat: instance- and organisation-scoped API tokens and webhooks" --body-file docs/superpowers/specs/2026-09-18-instance-and-org-scoped-api-design.md
 ```
