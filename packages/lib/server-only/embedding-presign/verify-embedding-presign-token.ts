@@ -1,4 +1,5 @@
 import { prisma } from '@documenso/prisma';
+import { ApiTokenScope } from '@prisma/client';
 import type { JWTPayload } from 'jose';
 import { decodeJwt, jwtVerify } from 'jose';
 
@@ -82,7 +83,16 @@ export const verifyEmbeddingPresignToken = async ({ token, scope }: VerifyEmbedd
 
   const userId = apiToken.userId;
 
-  if (audienceId !== apiToken.teamId && audienceId !== apiToken.userId) {
+  // Presign tokens are only minted from TEAM tokens (see createEmbeddingPresignToken).
+  if (apiToken.scope !== ApiTokenScope.TEAM || apiToken.teamId === null) {
+    throw new AppError(AppErrorCode.UNAUTHORIZED, {
+      message: 'Invalid presign token: API token is not team-scoped',
+    });
+  }
+
+  const teamId = apiToken.teamId;
+
+  if (audienceId !== teamId && audienceId !== apiToken.userId) {
     throw new AppError(AppErrorCode.UNAUTHORIZED, {
       message: 'Invalid presign token: API token does not match audience',
     });
@@ -124,6 +134,7 @@ export const verifyEmbeddingPresignToken = async ({ token, scope }: VerifyEmbedd
   return {
     ...apiToken,
     userId,
+    teamId,
     user: {
       id: apiToken.user.id,
       name: apiToken.user.name,

@@ -1,5 +1,6 @@
 import { AppError, AppErrorCode } from '@documenso/lib/errors/app-error';
 import { getApiTokenByToken } from '@documenso/lib/server-only/public-api/get-api-token-by-token';
+import { requireTeamScopedToken } from '@documenso/lib/server-only/public-api/require-team-scoped-token';
 import type { BaseApiLog, RootApiLog } from '@documenso/lib/types/api-logs';
 import type { ApiRequestMetadata } from '@documenso/lib/universal/extract-request-metadata';
 import { extractRequestMetadata } from '@documenso/lib/universal/extract-request-metadata';
@@ -60,7 +61,7 @@ export const authenticatedMiddleware = <
         });
       }
 
-      const apiToken = await getApiTokenByToken({ token });
+      const apiToken = requireTeamScopedToken(await getApiTokenByToken({ token }), 'API v1');
 
       if (apiToken.user.disabled) {
         throw new AppError(AppErrorCode.UNAUTHORIZED, {
@@ -108,6 +109,13 @@ export const authenticatedMiddleware = <
             status: 429,
             body: { message: err.message },
             headers: err.headers,
+          } as const;
+        }
+
+        if (err.code === AppErrorCode.FORBIDDEN) {
+          return {
+            status: 403,
+            body: { message: err.message },
           } as const;
         }
 

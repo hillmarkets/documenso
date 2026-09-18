@@ -1,4 +1,5 @@
 import { prisma } from '@documenso/prisma';
+import { ApiTokenScope } from '@prisma/client';
 
 import { AppError, AppErrorCode } from '../../errors/app-error';
 import { logger } from '../../utils/logger';
@@ -6,6 +7,18 @@ import { hashString } from '../auth/hash';
 import { assertOrganisationRatesAndLimits } from '../rate-limit/assert-organisation-rates-and-limits';
 
 const LAST_USED_AT_UPDATE_INTERVAL = 60_000; // 1 minute
+
+const ORGANISATION_INCLUDE = {
+  organisationClaim: true,
+  owner: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      disabled: true,
+    },
+  },
+} as const;
 
 type GetApiTokenByTokenOptions = {
   token: string;
@@ -29,19 +42,12 @@ export const getApiTokenByToken = async ({ token, bypassRateLimit = false }: Get
       team: {
         include: {
           organisation: {
-            include: {
-              organisationClaim: true,
-              owner: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  disabled: true,
-                },
-              },
-            },
+            include: ORGANISATION_INCLUDE,
           },
         },
+      },
+      organisation: {
+        include: ORGANISATION_INCLUDE,
       },
       user: {
         select: {
@@ -61,7 +67,17 @@ export const getApiTokenByToken = async ({ token, bypassRateLimit = false }: Get
     });
   }
 
-  if (apiToken.user?.disabled || apiToken.team.organisation.owner.disabled) {
+  // The organisation this token belongs to, if any. INSTANCE tokens have none.
+  const organisation = apiToken.team?.organisation ?? apiToken.organisation ?? null;
+
+  if (apiToken.scope !== ApiTokenScope.INSTANCE && !organisation) {
+    throw new AppError(AppErrorCode.UNAUTHORIZED, {
+      message: 'Invalid token',
+      statusCode: 401,
+    });
+  }
+
+  if (apiToken.user?.disabled || organisation?.owner.disabled) {
     throw new AppError(AppErrorCode.UNAUTHORIZED, {
       message: 'User is disabled',
       statusCode: 401,
@@ -75,23 +91,21 @@ export const getApiTokenByToken = async ({ token, bypassRateLimit = false }: Get
     });
   }
 
-  if (!bypassRateLimit) {
+  // INSTANCE tokens are the platform itself and are not subject to per-organisation limits.
+  if (!bypassRateLimit && organisation) {
     await assertOrganisationRatesAndLimits({
-      organisationId: apiToken.team.organisationId,
-      organisationClaim: apiToken.team.organisation.organisationClaim,
+      organisationId: organisation.id,
+      organisationClaim: organisation.organisationClaim,
       type: 'api',
       count: 1,
     });
   }
 
-  // Handle a silly choice from many moons ago
-  if (apiToken.team && !apiToken.user) {
-    apiToken.user = apiToken.team.organisation.owner;
-  }
+  // Team and organisation tokens without an explicit user act as the organisation owner.
+  // (For team tokens this is "a silly choice from many moons ago"; organisation tokens
+  // follow the same rule so every downstream membership check passes.)
+  const user = apiToken.user ?? organisation?.owner ?? null;
 
-  const { user } = apiToken;
-
-  // This will never happen but we need to narrow types
   if (!user) {
     throw new AppError(AppErrorCode.UNAUTHORIZED, {
       message: 'Invalid token',
@@ -125,5 +139,8 @@ export const getApiTokenByToken = async ({ token, bypassRateLimit = false }: Get
   return {
     ...apiToken,
     user,
+    organisation,
   };
 };
+
+export type ApiTokenWithRelations = Awaited<ReturnType<typeof getApiTokenByToken>>;

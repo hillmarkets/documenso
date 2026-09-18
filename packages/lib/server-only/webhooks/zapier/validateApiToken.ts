@@ -1,4 +1,5 @@
 import { getApiTokenByToken } from '../../public-api/get-api-token-by-token';
+import { requireTeamScopedToken } from '../../public-api/require-team-scoped-token';
 
 type ValidateApiTokenOptions = {
   authorization: string | undefined;
@@ -13,7 +14,7 @@ export const validateApiToken = async ({ authorization }: ValidateApiTokenOption
       throw new Error('Missing API token');
     }
 
-    return await getApiTokenByToken({ token, bypassRateLimit: true });
+    return requireTeamScopedToken(await getApiTokenByToken({ token, bypassRateLimit: true }), 'Zapier');
   } catch (err) {
     throw new Error(`Failed to validate API token`);
   }
