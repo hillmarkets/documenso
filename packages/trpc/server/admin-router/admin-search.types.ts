@@ -1,5 +1,18 @@
 import { z } from 'zod';
 
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const adminSearchMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'GET',
+    path: '/admin/search',
+    summary: 'Search',
+    description:
+      'Search users, organisations, teams and documents across the instance. Requires a session admin or an INSTANCE-scoped API token.',
+    tags: ['Admin'],
+  },
+};
+
 export const ZAdminSearchResultTypeSchema = z.enum([
   'document',
   'user',

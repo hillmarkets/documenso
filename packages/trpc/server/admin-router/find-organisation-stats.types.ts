@@ -1,6 +1,18 @@
 import { ZFindResultResponse, ZFindSearchParamsSchema } from '@documenso/lib/types/search-params';
 import { z } from 'zod';
 
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const findOrganisationStatsMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'GET',
+    path: '/admin/organisation-stats',
+    summary: 'Find organisation stats',
+    description: 'Usage statistics per organisation. Requires a session admin or an INSTANCE-scoped API token.',
+    tags: ['Admin'],
+  },
+};
+
 export const ZFindOrganisationStatsRequestSchema = ZFindSearchParamsSchema.extend({
   period: z
     .string()

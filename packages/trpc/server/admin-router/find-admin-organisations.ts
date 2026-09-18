@@ -4,11 +4,13 @@ import { Prisma } from '@prisma/client';
 
 import { adminProcedure } from '../trpc';
 import {
+  findAdminOrganisationsMeta,
   ZFindAdminOrganisationsRequestSchema,
   ZFindAdminOrganisationsResponseSchema,
 } from './find-admin-organisations.types';
 
 export const findAdminOrganisationsRoute = adminProcedure
+  .meta(findAdminOrganisationsMeta)
   .input(ZFindAdminOrganisationsRequestSchema)
   .output(ZFindAdminOrganisationsResponseSchema)
   .query(async ({ input }) => {

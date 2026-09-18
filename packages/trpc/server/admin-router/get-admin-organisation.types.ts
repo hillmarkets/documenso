@@ -10,6 +10,18 @@ import TeamSchema from '@documenso/prisma/generated/zod/modelSchema/TeamSchema';
 import UserSchema from '@documenso/prisma/generated/zod/modelSchema/UserSchema';
 import { z } from 'zod';
 
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const getAdminOrganisationMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'GET',
+    path: '/admin/organisation/{organisationId}',
+    summary: 'Get organisation',
+    description: 'Get any organisation by ID. Requires a session admin or an INSTANCE-scoped API token.',
+    tags: ['Admin'],
+  },
+};
+
 export const ZGetAdminOrganisationRequestSchema = z.object({
   organisationId: z.string(),
 });

@@ -2,9 +2,10 @@ import { jobsClient } from '@documenso/lib/jobs/client';
 import { createAdminUser } from '@documenso/lib/server-only/user/create-admin-user';
 
 import { adminProcedure } from '../trpc';
-import { ZCreateUserRequestSchema, ZCreateUserResponseSchema } from './create-user.types';
+import { createUserMeta, ZCreateUserRequestSchema, ZCreateUserResponseSchema } from './create-user.types';
 
 export const createUserRoute = adminProcedure
+  .meta(createUserMeta)
   .input(ZCreateUserRequestSchema)
   .output(ZCreateUserResponseSchema)
   .mutation(async ({ input, ctx }) => {

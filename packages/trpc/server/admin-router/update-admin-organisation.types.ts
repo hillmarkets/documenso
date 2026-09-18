@@ -2,7 +2,18 @@ import { ZNameSchema } from '@documenso/lib/types/name';
 import { z } from 'zod';
 
 import { ZTeamUrlSchema } from '../team-router/schema';
+import type { TrpcRouteMeta } from '../trpc-instance';
 import { ZCreateSubscriptionClaimRequestSchema } from './create-subscription-claim.types';
+
+export const updateAdminOrganisationMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'POST',
+    path: '/admin/organisation/{organisationId}/update',
+    summary: 'Update organisation',
+    description: 'Update any organisation. Requires a session admin or an INSTANCE-scoped API token.',
+    tags: ['Admin'],
+  },
+};
 
 export const ZUpdateAdminOrganisationRequestSchema = z.object({
   organisationId: z.string(),

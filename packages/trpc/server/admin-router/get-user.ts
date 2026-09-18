@@ -1,9 +1,10 @@
 import { getUserById } from '@documenso/lib/server-only/user/get-user-by-id';
 
 import { adminProcedure } from '../trpc';
-import { ZGetUserRequestSchema, ZGetUserResponseSchema } from './get-user.types';
+import { getUserMeta, ZGetUserRequestSchema, ZGetUserResponseSchema } from './get-user.types';
 
 export const getUserRoute = adminProcedure
+  .meta(getUserMeta)
   .input(ZGetUserRequestSchema)
   .output(ZGetUserResponseSchema)
   .query(async ({ input, ctx }) => {

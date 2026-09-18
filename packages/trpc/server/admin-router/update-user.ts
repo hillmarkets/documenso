@@ -1,9 +1,10 @@
 import { updateUser } from '@documenso/lib/server-only/admin/update-user';
 
 import { adminProcedure } from '../trpc';
-import { ZUpdateUserRequestSchema, ZUpdateUserResponseSchema } from './update-user.types';
+import { updateUserMeta, ZUpdateUserRequestSchema, ZUpdateUserResponseSchema } from './update-user.types';
 
 export const updateUserRoute = adminProcedure
+  .meta(updateUserMeta)
   .input(ZUpdateUserRequestSchema)
   .output(ZUpdateUserResponseSchema)
   .mutation(async ({ input, ctx }) => {

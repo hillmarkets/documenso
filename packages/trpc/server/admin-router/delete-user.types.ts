@@ -1,5 +1,17 @@
 import { z } from 'zod';
 
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const deleteUserMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'POST',
+    path: '/admin/user/{id}/delete',
+    summary: 'Delete user',
+    description: 'Delete a user. Requires a session admin or an INSTANCE-scoped API token.',
+    tags: ['Admin'],
+  },
+};
+
 export const ZDeleteUserRequestSchema = z.object({
   id: z.number().min(1),
 });

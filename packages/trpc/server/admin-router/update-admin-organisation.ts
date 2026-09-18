@@ -3,11 +3,13 @@ import { prisma } from '@documenso/prisma';
 
 import { adminProcedure } from '../trpc';
 import {
+  updateAdminOrganisationMeta,
   ZUpdateAdminOrganisationRequestSchema,
   ZUpdateAdminOrganisationResponseSchema,
 } from './update-admin-organisation.types';
 
 export const updateAdminOrganisationRoute = adminProcedure
+  .meta(updateAdminOrganisationMeta)
   .input(ZUpdateAdminOrganisationRequestSchema)
   .output(ZUpdateAdminOrganisationResponseSchema)
   .mutation(async ({ input, ctx }) => {

@@ -1,6 +1,18 @@
 import UserSchema from '@documenso/prisma/generated/zod/modelSchema/UserSchema';
 import { z } from 'zod';
 
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const getUserMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'GET',
+    path: '/admin/user/{id}',
+    summary: 'Get user',
+    description: 'Get a user by ID. Requires a session admin or an INSTANCE-scoped API token.',
+    tags: ['Admin'],
+  },
+};
+
 export const ZGetUserRequestSchema = z.object({
   id: z.number().min(1),
 });

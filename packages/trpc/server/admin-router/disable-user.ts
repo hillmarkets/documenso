@@ -3,9 +3,10 @@ import { disableUser } from '@documenso/lib/server-only/user/disable-user';
 import { getUserById } from '@documenso/lib/server-only/user/get-user-by-id';
 
 import { adminProcedure } from '../trpc';
-import { ZDisableUserRequestSchema, ZDisableUserResponseSchema } from './disable-user.types';
+import { disableUserMeta, ZDisableUserRequestSchema, ZDisableUserResponseSchema } from './disable-user.types';
 
 export const disableUserRoute = adminProcedure
+  .meta(disableUserMeta)
   .input(ZDisableUserRequestSchema)
   .output(ZDisableUserResponseSchema)
   .mutation(async ({ input, ctx }) => {
