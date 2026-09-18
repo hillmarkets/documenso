@@ -4,7 +4,6 @@ import { z } from 'zod';
 export const ZTriggerWebhookBodySchema = z.object({
   event: z.nativeEnum(WebhookTriggerEvents),
   data: z.unknown(),
-  userId: z.number(),
   teamId: z.number(),
 });
 

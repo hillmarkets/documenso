@@ -7,7 +7,7 @@ import type { JobRunIO } from '../../client/_internal/job';
 import type { TExecuteWebhookJobDefinition } from './execute-webhook';
 
 export const run = async ({ payload, io: _io }: { payload: TExecuteWebhookJobDefinition; io: JobRunIO }) => {
-  const { event, webhookId, data } = payload;
+  const { event, webhookId, data, teamId } = payload;
 
   const webhook = await prisma.webhook.findUniqueOrThrow({
     where: {
@@ -17,11 +17,21 @@ export const run = async ({ payload, io: _io }: { payload: TExecuteWebhookJobDef
 
   const { webhookUrl: url, secret } = webhook;
 
+  // Organisation- and instance-level receivers need to know which tenant the event came from.
+  const team = teamId
+    ? await prisma.team.findUnique({
+        where: { id: teamId },
+        select: { organisationId: true },
+      })
+    : null;
+
   const payloadData = {
     event,
     payload: data,
     createdAt: new Date().toISOString(),
     webhookEndpoint: url,
+    teamId: teamId ?? null,
+    organisationId: team?.organisationId ?? null,
   };
 
   const result = await executeWebhookCall({ url, body: payloadData, secret });

@@ -32,7 +32,6 @@ export const deleteTemplate = async ({ id, userId, teamId }: DeleteTemplateOptio
   await triggerWebhook({
     event: WebhookTriggerEvents.TEMPLATE_DELETED,
     data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(templateToDelete)),
-    userId,
     teamId,
   });
 

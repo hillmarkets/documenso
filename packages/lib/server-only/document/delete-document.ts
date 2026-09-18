@@ -94,7 +94,6 @@ export const deleteDocument = async ({ id, userId, teamId, requestMetadata }: De
     await triggerWebhook({
       event: WebhookTriggerEvents.DOCUMENT_CANCELLED,
       data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(envelopeForWebhook)),
-      userId,
       teamId,
     });
   }

@@ -10,6 +10,8 @@ const EXECUTE_WEBHOOK_JOB_DEFINITION_SCHEMA = z.object({
   event: z.nativeEnum(WebhookTriggerEvents),
   webhookId: z.string(),
   data: z.unknown(),
+  // Optional so jobs queued before this field existed still parse.
+  teamId: z.number().optional(),
   requestMetadata: ZRequestMetadataSchema.optional(),
 });
 

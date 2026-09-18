@@ -363,7 +363,6 @@ export const updateEnvelope = async ({
     await triggerWebhook({
       event: WebhookTriggerEvents.TEMPLATE_UPDATED,
       data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(updatedEnvelope)),
-      userId,
       teamId,
     });
   }

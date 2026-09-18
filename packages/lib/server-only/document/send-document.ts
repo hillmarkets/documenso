@@ -362,7 +362,6 @@ export const sendDocument = async ({ id, userId, teamId, sendEmail, requestMetad
   await triggerWebhook({
     event: WebhookTriggerEvents.DOCUMENT_SENT,
     data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(updatedEnvelope)),
-    userId,
     teamId,
   });
 

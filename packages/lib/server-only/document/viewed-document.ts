@@ -102,7 +102,6 @@ export const viewedDocument = async ({ token, recipientAccessAuth, requestMetada
   await triggerWebhook({
     event: WebhookTriggerEvents.DOCUMENT_OPENED,
     data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(envelope)),
-    userId: envelope.userId,
     teamId: envelope.teamId,
   });
 };

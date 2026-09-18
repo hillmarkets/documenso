@@ -336,7 +336,6 @@ export const run = async ({ payload, io }: { payload: TSealDocumentJobDefinition
   await triggerWebhook({
     event: isRejected ? WebhookTriggerEvents.DOCUMENT_REJECTED : WebhookTriggerEvents.DOCUMENT_COMPLETED,
     data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(updatedEnvelope)),
-    userId: updatedEnvelope.userId,
     teamId: updatedEnvelope.teamId ?? undefined,
   });
 

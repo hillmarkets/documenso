@@ -1,25 +1,28 @@
 import { prisma } from '@documenso/prisma';
 import type { WebhookTriggerEvents } from '@prisma/client';
 
-import { buildTeamWhereQuery } from '../../utils/teams';
+import { buildWebhookDeliveryWhere } from './build-webhook-delivery-where';
 
 export type GetAllWebhooksByEventTriggerOptions = {
   event: WebhookTriggerEvents;
-  userId: number;
   teamId: number;
 };
 
-export const getAllWebhooksByEventTrigger = async ({ event, userId, teamId }: GetAllWebhooksByEventTriggerOptions) => {
+/**
+ * Every webhook that should receive `event` for something that happened in `teamId`:
+ * the team's own webhooks, its organisation's webhooks and all instance webhooks.
+ */
+export const getAllWebhooksByEventTrigger = async ({ event, teamId }: GetAllWebhooksByEventTriggerOptions) => {
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: { organisationId: true },
+  });
+
+  if (!team) {
+    return [];
+  }
+
   return prisma.webhook.findMany({
-    where: {
-      enabled: true,
-      eventTriggers: {
-        has: event,
-      },
-      team: buildTeamWhereQuery({
-        teamId,
-        userId,
-      }),
-    },
+    where: buildWebhookDeliveryWhere({ event, teamId, organisationId: team.organisationId }),
   });
 };

@@ -155,6 +155,18 @@ export const getSettingsNavGroups = ({
             label: msg`Groups`,
             icon: GroupIcon,
           },
+          {
+            key: 'tokens',
+            path: `/o/${organisation.url}/settings/tokens`,
+            label: msg`API Tokens`,
+            icon: BracesIcon,
+          },
+          {
+            key: 'webhooks',
+            path: `/o/${organisation.url}/settings/webhooks`,
+            label: msg`Webhooks`,
+            icon: WebhookIcon,
+          },
           ...((isBillingEnabled && organisation.organisationClaim.flags.authenticationPortal) || isDocumensoCloud
             ? [
                 {
