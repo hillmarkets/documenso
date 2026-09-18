@@ -17,7 +17,9 @@ export const getTeamMeta: TrpcRouteMeta = {
 };
 
 export const ZGetTeamRequestSchema = z.object({
-  teamReference: z.union([z.string(), z.number()]),
+  // Preprocess (rather than a string|number union) so the OpenAPI generator accepts it as a path
+  // parameter while the web client can keep passing a numeric ID.
+  teamReference: z.preprocess((value) => String(value), z.string()).describe('The ID or URL of the team.'),
 });
 
 export const ZGetTeamResponseSchema = TeamSchema.pick({

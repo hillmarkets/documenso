@@ -36,11 +36,14 @@ export const getTeamByUrl = async ({ userId, teamUrl }: GetTeamByUrlOptions) => 
  * Get a team by its ID or URL.
  */
 export const getTeam = async ({ teamReference, userId }: { teamReference: number | string; userId: number }) => {
+  // A numeric reference may be an ID or an all-digit URL, so match either.
+  const numericReference = Number(teamReference);
+  const isNumeric = Number.isInteger(numericReference) && numericReference > 0;
+
   const team = await prisma.team.findFirst({
     where: {
       ...buildTeamWhereQuery({ teamId: undefined, userId }),
-      id: typeof teamReference === 'number' ? teamReference : undefined,
-      url: typeof teamReference === 'string' ? teamReference : undefined,
+      OR: isNumeric ? [{ id: numericReference }, { url: String(teamReference) }] : [{ url: String(teamReference) }],
     },
     include: {
       teamEmail: true,
