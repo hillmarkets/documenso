@@ -4,6 +4,8 @@ import {
   createInstanceWebhook,
   createOrganisationWebhook,
 } from '@documenso/lib/server-only/webhooks/scoped/scoped-webhooks';
+import { triggerWebhook } from '@documenso/lib/server-only/webhooks/trigger/trigger-webhook';
+import { prisma } from '@documenso/prisma';
 import { seedTeam } from '@documenso/prisma/seed/teams';
 import { seedUser } from '@documenso/prisma/seed/users';
 import { expect, test } from '@playwright/test';
@@ -36,4 +38,24 @@ test('event on a team reaches team, organisation and instance webhooks but not a
 
   expect(ids).toEqual(expect.arrayContaining([teamHook.id, organisationHook.id, instanceHook.id]));
   expect(ids).not.toContain(foreignHook.id);
+
+  // Triggering enqueues one execute-webhook job per matching webhook, each carrying the tenant.
+  await triggerWebhook({ event: WebhookTriggerEvents.DOCUMENT_CREATED, data: { title: 'x' }, teamId: team.id });
+
+  const jobs = await prisma.backgroundJob.findMany({
+    where: { jobId: 'internal.execute-webhook' },
+    orderBy: { id: 'desc' },
+    take: 20,
+  });
+
+  const payloads = jobs
+    .map((job) => job.payload as { webhookId: string; teamId?: number })
+    .filter((payload) =>
+      [teamHook.id, organisationHook.id, instanceHook.id, foreignHook.id].includes(payload.webhookId),
+    );
+
+  expect(payloads.map((payload) => payload.webhookId).sort()).toEqual(
+    [teamHook.id, organisationHook.id, instanceHook.id].sort(),
+  );
+  expect(payloads.every((payload) => payload.teamId === team.id)).toBe(true);
 });
