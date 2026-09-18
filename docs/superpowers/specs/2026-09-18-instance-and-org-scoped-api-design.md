@@ -1,7 +1,7 @@
 # Instance- and Organisation-Scoped API
 
 **Date:** 2026-09-18
-**Status:** Approved design, pending implementation plan
+**Status:** Implemented on `feat/scoped-api` (see "Implementation notes" at the end)
 **Base:** documenso v2.18.0 (`e658cc5`)
 
 ## Problem
@@ -294,3 +294,39 @@ Before any code:
 - `packages/trpc/server/{admin,webhook,api-token}-router/*` (new meta, scope checks)
 - `packages/api/v1/middleware/authenticated.ts` (TEAM-only gate)
 - `apps/remix/app/routes/_authenticated+/o+/...` and `admin+/...` (new pages)
+
+## Implementation notes
+
+Decisions made while implementing that refine the sections above.
+
+- **`organisation.create` is untouched.** INSTANCE callers create organisations
+  through `POST /admin/organisation/create` (`admin.organisation.create`), which
+  already takes `ownerUserId` and returns `organisationId`.
+- **TEAM tokens are rejected from `/team/*` as well as `/organisation/*` and
+  `/admin/*`.** TEAM tokens are for document work inside one team; tenant
+  management is reserved for ORGANISATION and INSTANCE tokens.
+- **Scope guard coverage.** `enforceApiTokenScope` checks the primary tenant keys
+  in every input (`organisationId`, `organisationReference`, `teamId`,
+  `teamReference`, `transferTeamId`). For ORGANISATION tokens, every team named
+  in the input is verified against the database to belong to the organisation.
+  Secondary references (`organisationGroupId`, `memberIds`, `invitationId`, …)
+  rely on the procedure's own membership check, which the acting user (the
+  organisation owner) fails for foreign tenants. **Consequence:** if one user
+  owns several organisations, an ORGANISATION token for one of them could reach
+  the others' groups/members through those secondary keys. Use a distinct owner
+  per organisation when minting them from the instance API.
+- **`update-organisation-group` and `update-team-group` stay session-only.**
+  Their input is a bare group `id` that cannot be tied to a tenant by the guard.
+- **Error codes.** The OpenAPI error handler maps HTTP status from
+  `AppErrorCode`, not `statusCode`, so scope violations use
+  `AppErrorCode.FORBIDDEN` (403) and missing headers use `INVALID_REQUEST`
+  (400).
+- **`team.create` now returns `{ id, url }`** instead of `void` so API callers
+  can chain into the new team.
+- **`/admin/organisation/stats` became `/admin/organisation-stats`** to avoid
+  colliding with `/admin/organisation/{organisationId}`.
+- **Webhook job payload** carries `teamId`; the delivered body gains top-level
+  `teamId` and `organisationId`.
+- **Repo:** GitHub forks of public repos cannot be private, so
+  `hillmarkets/documenso` is a private standalone repo with `upstream` pointing
+  at `documenso/documenso`. It can be made public later.
