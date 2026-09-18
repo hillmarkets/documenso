@@ -181,19 +181,31 @@ enum WebhookTriggerEvents {
   TEMPLATE_USED
 }
 
+enum WebhookScope {
+  INSTANCE
+  ORGANISATION
+  TEAM
+}
+
 model Webhook {
-  id            String                 @id @default(cuid())
-  webhookUrl    String
-  eventTriggers WebhookTriggerEvents[]
-  secret        String?
-  enabled       Boolean                @default(true)
-  createdAt     DateTime               @default(now())
-  updatedAt     DateTime               @default(now()) @updatedAt
-  userId        Int
-  user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId        Int
-  team          Team                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  webhookCalls  WebhookCall[]
+  id             String                 @id @default(cuid())
+  webhookUrl     String
+  eventTriggers  WebhookTriggerEvents[]
+  secret         String?
+  enabled        Boolean                @default(true)
+  scope          WebhookScope           @default(TEAM)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @default(now()) @updatedAt
+  userId         Int
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId         Int?
+  team           Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  organisationId String?
+  organisation   Organisation?          @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  webhookCalls   WebhookCall[]
+
+  @@index([scope, teamId])
+  @@index([scope, organisationId])
 }
 
 enum WebhookCallStatus {
@@ -219,18 +231,27 @@ enum ApiTokenAlgorithm {
   SHA512
 }
 
+enum ApiTokenScope {
+  INSTANCE
+  ORGANISATION
+  TEAM
+}
+
 model ApiToken {
-  id         Int               @id @default(autoincrement())
-  name       String
-  token      String            @unique
-  algorithm  ApiTokenAlgorithm @default(SHA512)
-  expires    DateTime?
-  createdAt  DateTime          @default(now())
-  lastUsedAt DateTime?
-  userId     Int?
-  user       User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId     Int
-  team       Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id             Int               @id @default(autoincrement())
+  name           String
+  token          String            @unique
+  algorithm      ApiTokenAlgorithm @default(SHA512)
+  scope          ApiTokenScope     @default(TEAM)
+  expires        DateTime?
+  createdAt      DateTime          @default(now())
+  lastUsedAt     DateTime?
+  userId         Int?
+  user           User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId         Int?
+  team           Team?             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  organisationId String?
+  organisation   Organisation?     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 }
 
 enum SubscriptionStatus {
@@ -829,7 +850,9 @@ model Organisation {
   invites OrganisationMemberInvite[]
   groups  OrganisationGroup[]
 
-  teams Team[]
+  teams     Team[]
+  apiTokens ApiToken[]
+  webhooks  Webhook[]
 
   emailDomains       EmailDomain[]
   organisationEmails OrganisationEmail[]
