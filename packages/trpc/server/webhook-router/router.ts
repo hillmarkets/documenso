@@ -10,6 +10,20 @@ import { prisma } from '@documenso/prisma';
 
 import { authenticatedProcedure, router } from '../trpc';
 import { findWebhookCallsRoute } from './find-webhook-calls';
+import {
+  createInstanceWebhookRoute,
+  deleteInstanceWebhookRoute,
+  findInstanceWebhooksRoute,
+  getInstanceWebhookRoute,
+  updateInstanceWebhookRoute,
+} from './instance/instance-webhooks';
+import {
+  createOrganisationWebhookRoute,
+  deleteOrganisationWebhookRoute,
+  findOrganisationWebhooksRoute,
+  getOrganisationWebhookRoute,
+  updateOrganisationWebhookRoute,
+} from './organisation/organisation-webhooks';
 import { resendWebhookCallRoute } from './resend-webhook-call';
 import {
   ZCreateWebhookRequestSchema,
@@ -23,6 +37,22 @@ export const webhookRouter = router({
   calls: {
     find: findWebhookCallsRoute,
     resend: resendWebhookCallRoute,
+  },
+
+  organisation: {
+    create: createOrganisationWebhookRoute,
+    find: findOrganisationWebhooksRoute,
+    get: getOrganisationWebhookRoute,
+    update: updateOrganisationWebhookRoute,
+    delete: deleteOrganisationWebhookRoute,
+  },
+
+  instance: {
+    create: createInstanceWebhookRoute,
+    find: findInstanceWebhooksRoute,
+    get: getInstanceWebhookRoute,
+    update: updateInstanceWebhookRoute,
+    delete: deleteInstanceWebhookRoute,
   },
 
   getTeamWebhooks: authenticatedProcedure.query(async ({ ctx }) => {
