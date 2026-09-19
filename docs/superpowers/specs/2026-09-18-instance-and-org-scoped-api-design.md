@@ -330,3 +330,8 @@ Decisions made while implementing that refine the sections above.
 - **Repo:** GitHub forks of public repos cannot be private, so
   `hillmarkets/documenso` is a private standalone repo with `upstream` pointing
   at `documenso/documenso`. It can be made public later.
+- **Translations were not extracted in this branch.** `lingui extract` pulls in
+  ~50 unrelated upstream strings whose catalogs lag the code (3,451 lines across
+  11 locales for 13 new strings). Lingui falls back to the English `msgid`, so
+  the new UI strings show in English in the other locales until the next
+  catalog sync.
