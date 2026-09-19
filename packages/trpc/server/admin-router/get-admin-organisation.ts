@@ -3,11 +3,13 @@ import { prisma } from '@documenso/prisma';
 
 import { adminProcedure } from '../trpc';
 import {
+  getAdminOrganisationMeta,
   ZGetAdminOrganisationRequestSchema,
   ZGetAdminOrganisationResponseSchema,
 } from './get-admin-organisation.types';
 
 export const getAdminOrganisationRoute = adminProcedure
+  .meta(getAdminOrganisationMeta)
   .input(ZGetAdminOrganisationRequestSchema)
   .output(ZGetAdminOrganisationResponseSchema)
   .query(async ({ input, ctx }) => {

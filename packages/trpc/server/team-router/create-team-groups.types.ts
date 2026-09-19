@@ -1,15 +1,17 @@
 import { TeamMemberRole } from '@prisma/client';
 import { z } from 'zod';
 
-// export const createTeamGroupsMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'POST',
-//     path: '/team/{teamId}/groups',
-//     summary: 'Create team group',
-//     description: 'Create a new group for a team',
-//     tags: ['Team'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const createTeamGroupsMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'POST',
+    path: '/team/{teamId}/groups/create',
+    summary: 'Create team group',
+    description: 'Create a new group for a team',
+    tags: ['Team'],
+  },
+};
 
 export const ZCreateTeamGroupsRequestSchema = z.object({
   teamId: z.number(),

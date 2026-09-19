@@ -11,12 +11,13 @@ import { OrganisationGroupType } from '@prisma/client';
 
 import { authenticatedProcedure } from '../trpc';
 import {
+  updateOrganisationMemberMeta,
   ZUpdateOrganisationMemberRequestSchema,
   ZUpdateOrganisationMemberResponseSchema,
 } from './update-organisation-members.types';
 
 export const updateOrganisationMemberRoute = authenticatedProcedure
-  //   .meta(updateOrganisationMemberMeta)
+  .meta(updateOrganisationMemberMeta)
   .input(ZUpdateOrganisationMemberRequestSchema)
   .output(ZUpdateOrganisationMemberResponseSchema)
   .mutation(async ({ ctx, input }) => {

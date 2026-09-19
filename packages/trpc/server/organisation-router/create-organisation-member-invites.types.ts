@@ -2,15 +2,17 @@ import { zEmail } from '@documenso/lib/utils/zod';
 import { OrganisationMemberRole } from '@prisma/client';
 import { z } from 'zod';
 
-// export const createOrganisationMemberInvitesMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'POST',
-//     path: '/organisation/member/create',
-//     summary: 'Invite organisation members',
-//     description: 'Invite a users to be part of your organisation',
-//     tags: ['Organisation'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const createOrganisationMemberInvitesMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'POST',
+    path: '/organisation/{organisationId}/member/invite',
+    summary: 'Invite organisation members',
+    description: 'Invite a users to be part of your organisation',
+    tags: ['Organisation'],
+  },
+};
 
 export const ZCreateOrganisationMemberInvitesRequestSchema = z.object({
   organisationId: z.string().describe('The organisation to invite the user to'),

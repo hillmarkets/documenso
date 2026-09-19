@@ -33,6 +33,7 @@ import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
 import { WebhookMultiSelectCombobox } from '../general/webhook-multiselect-combobox';
+import { type DialogScope, forScope, TEAM_DIALOG_SCOPE } from './scoped-dialog-props';
 
 const ZEditWebhookFormSchema = ZEditWebhookRequestSchema.omit({ id: true });
 
@@ -41,15 +42,33 @@ type TEditWebhookFormSchema = z.infer<typeof ZEditWebhookFormSchema>;
 export type WebhookEditDialogProps = {
   trigger?: React.ReactNode;
   webhook: Webhook;
+  scope?: DialogScope;
 } & Omit<DialogPrimitive.DialogProps, 'children'>;
 
-export const WebhookEditDialog = ({ trigger, webhook, ...props }: WebhookEditDialogProps) => {
+export const WebhookEditDialog = ({
+  trigger,
+  webhook,
+  scope = TEAM_DIALOG_SCOPE,
+  ...props
+}: WebhookEditDialogProps) => {
   const { t } = useLingui();
   const { toast } = useToast();
 
   const [open, setOpen] = useState(false);
 
-  const { mutateAsync: updateWebhook } = trpc.webhook.editWebhook.useMutation();
+  const utils = trpc.useUtils();
+
+  const onSuccess = async () => {
+    await Promise.all([
+      utils.webhook.getTeamWebhooks.invalidate(),
+      utils.webhook.organisation.find.invalidate(),
+      utils.webhook.instance.find.invalidate(),
+    ]);
+  };
+
+  const updateTeamWebhook = trpc.webhook.editWebhook.useMutation({ onSuccess });
+  const updateOrganisationWebhook = trpc.webhook.organisation.update.useMutation({ onSuccess });
+  const updateInstanceWebhook = trpc.webhook.instance.update.useMutation({ onSuccess });
 
   const form = useForm<TEditWebhookFormSchema>({
     resolver: zodResolver(ZEditWebhookFormSchema),
@@ -63,9 +82,11 @@ export const WebhookEditDialog = ({ trigger, webhook, ...props }: WebhookEditDia
 
   const onSubmit = async (data: TEditWebhookFormSchema) => {
     try {
-      await updateWebhook({
-        id: webhook.id,
-        ...data,
+      await forScope(scope, {
+        team: async () => updateTeamWebhook.mutateAsync({ id: webhook.id, ...data }),
+        organisation: async (organisationId) =>
+          updateOrganisationWebhook.mutateAsync({ id: webhook.id, organisationId, ...data }),
+        instance: async () => updateInstanceWebhook.mutateAsync({ id: webhook.id, ...data }),
       });
 
       toast({

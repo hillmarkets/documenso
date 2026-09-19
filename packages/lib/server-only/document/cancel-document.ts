@@ -121,7 +121,6 @@ export const cancelDocument = async ({ id, userId, teamId, reason, requestMetada
         completedAt: updatedEnvelope.completedAt,
       }),
     ),
-    userId,
     teamId,
   });
 

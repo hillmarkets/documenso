@@ -1,21 +1,21 @@
 import { ZNameSchema } from '@documenso/lib/types/name';
 import { z } from 'zod';
-
+import type { TrpcRouteMeta } from '../trpc-instance';
 import { ZTeamUrlSchema } from './schema';
 
 export const MAX_PROFILE_BIO_LENGTH = 256;
 
 // If we enable this, consider whether we should move the profile updates to
 // a separate endpoint since that's a separate action.
-// export const updateTeamMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'POST',
-//     path: '/team/{teamId}',
-//     summary: 'Update team',
-//     description: 'Update an team',
-//     tags: ['team'],
-//   },
-// };
+export const updateTeamMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'POST',
+    path: '/team/{teamId}/update',
+    summary: 'Update team',
+    description: 'Update an team',
+    tags: ['team'],
+  },
+};
 
 export const ZUpdateTeamRequestSchema = z.object({
   teamId: z.number(),

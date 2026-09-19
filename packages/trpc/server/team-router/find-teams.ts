@@ -1,10 +1,10 @@
 import { findTeams } from '@documenso/lib/server-only/team/find-teams';
 
 import { authenticatedProcedure } from '../trpc';
-import { ZFindTeamsRequestSchema, ZFindTeamsResponseSchema } from './find-teams.types';
+import { getTeamsMeta, ZFindTeamsRequestSchema, ZFindTeamsResponseSchema } from './find-teams.types';
 
 export const findTeamsRoute = authenticatedProcedure
-  //   .meta(getTeamsMeta)
+  .meta(getTeamsMeta)
   .input(ZFindTeamsRequestSchema)
   .output(ZFindTeamsResponseSchema)
   .query(async ({ ctx, input }) => {

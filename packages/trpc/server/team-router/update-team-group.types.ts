@@ -1,7 +1,7 @@
 import { TeamMemberRole } from '@prisma/client';
 import { z } from 'zod';
 
-// export const updateTeamGroupMeta: TrpcOpenApiMeta = {
+// export const updateTeamGroupMeta: TrpcRouteMeta = {
 //   openapi: {
 //     method: 'POST',
 //     path: '/team/groups/{id}',

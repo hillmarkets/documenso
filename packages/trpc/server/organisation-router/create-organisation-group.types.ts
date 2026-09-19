@@ -2,15 +2,17 @@ import { ZNameSchema } from '@documenso/lib/types/name';
 import { OrganisationMemberRole } from '@prisma/client';
 import { z } from 'zod';
 
-// export const createOrganisationGroupMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'POST',
-//     path: '/organisation/{teamId}/groups',
-//     summary: 'Create organisation group',
-//     description: 'Create a new group for a organisation',
-//     tags: ['Organisation'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const createOrganisationGroupMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'POST',
+    path: '/organisation/{organisationId}/groups/create',
+    summary: 'Create organisation group',
+    description: 'Create a new group for a organisation',
+    tags: ['Organisation'],
+  },
+};
 
 export const ZCreateOrganisationGroupRequestSchema = z.object({
   organisationId: z.string(),

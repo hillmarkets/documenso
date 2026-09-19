@@ -1,15 +1,17 @@
 import { ZNameSchema } from '@documenso/lib/types/name';
 import { z } from 'zod';
 
-// export const createOrganisationMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'POST',
-//     path: '/organisation',
-//     summary: 'Create organisation',
-//     description: 'Create an organisation',
-//     tags: ['Organisation'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const createOrganisationMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'POST',
+    path: '/organisation/create',
+    summary: 'Create organisation',
+    description: 'Create an organisation',
+    tags: ['Organisation'],
+  },
+};
 
 export const ZCreateOrganisationRequestSchema = z.object({
   name: ZNameSchema,

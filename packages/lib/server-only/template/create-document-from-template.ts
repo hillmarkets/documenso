@@ -784,13 +784,11 @@ export const createDocumentFromTemplate = async ({
     triggerWebhook({
       event: WebhookTriggerEvents.DOCUMENT_CREATED,
       data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(createdEnvelope)),
-      userId,
       teamId,
     }),
     triggerWebhook({
       event: WebhookTriggerEvents.TEMPLATE_USED,
       data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(createdEnvelope)),
-      userId,
       teamId,
     }),
   ]);

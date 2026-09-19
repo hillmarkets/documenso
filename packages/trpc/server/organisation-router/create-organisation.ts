@@ -8,10 +8,14 @@ import { INTERNAL_CLAIM_ID } from '@documenso/lib/types/subscription';
 import { prisma } from '@documenso/prisma';
 import { OrganisationType, SubscriptionStatus } from '@prisma/client';
 import { authenticatedProcedure } from '../trpc';
-import { ZCreateOrganisationRequestSchema, ZCreateOrganisationResponseSchema } from './create-organisation.types';
+import {
+  createOrganisationMeta,
+  ZCreateOrganisationRequestSchema,
+  ZCreateOrganisationResponseSchema,
+} from './create-organisation.types';
 
 export const createOrganisationRoute = authenticatedProcedure
-  // .meta(createOrganisationMeta)
+  .meta(createOrganisationMeta)
   .input(ZCreateOrganisationRequestSchema)
   .output(ZCreateOrganisationResponseSchema)
   .mutation(async ({ input, ctx }) => {

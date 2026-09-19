@@ -5,11 +5,13 @@ import { match } from 'ts-pattern';
 
 import { adminProcedure } from '../trpc';
 import {
+  findOrganisationStatsMeta,
   ZFindOrganisationStatsRequestSchema,
   ZFindOrganisationStatsResponseSchema,
 } from './find-organisation-stats.types';
 
 export const findOrganisationStatsRoute = adminProcedure
+  .meta(findOrganisationStatsMeta)
   .input(ZFindOrganisationStatsRequestSchema)
   .output(ZFindOrganisationStatsResponseSchema)
   .query(async ({ input }) => {

@@ -1,9 +1,10 @@
 import { adminGlobalSearch } from '@documenso/lib/server-only/admin/admin-global-search';
 
 import { adminProcedure } from '../trpc';
-import { ZAdminSearchRequestSchema, ZAdminSearchResponseSchema } from './admin-search.types';
+import { adminSearchMeta, ZAdminSearchRequestSchema, ZAdminSearchResponseSchema } from './admin-search.types';
 
 export const adminSearchRoute = adminProcedure
+  .meta(adminSearchMeta)
   .input(ZAdminSearchRequestSchema)
   .output(ZAdminSearchResponseSchema)
   .query(async ({ input }) => {

@@ -8,6 +8,7 @@ import { Trans } from '@lingui/react/macro';
 import {
   AlertTriangleIcon,
   BarChart3,
+  BracesIcon,
   Building2Icon,
   FileStack,
   LineChartIcon,
@@ -16,6 +17,7 @@ import {
   Trophy,
   Users,
   Wallet2,
+  WebhookIcon,
 } from 'lucide-react';
 import { Link, Outlet, redirect, useLocation } from 'react-router';
 
@@ -139,6 +141,28 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
             <Link to="/admin/email-transports">
               <MailIcon className="mr-2 h-5 w-5" />
               <Trans>Email Transports</Trans>
+            </Link>
+          </Button>
+
+          <Button
+            variant="ghost"
+            className={cn('justify-start md:w-full', pathname?.startsWith('/admin/tokens') && 'bg-secondary')}
+            asChild
+          >
+            <Link to="/admin/tokens">
+              <BracesIcon className="mr-2 h-5 w-5" />
+              <Trans>API Tokens</Trans>
+            </Link>
+          </Button>
+
+          <Button
+            variant="ghost"
+            className={cn('justify-start md:w-full', pathname?.startsWith('/admin/webhooks') && 'bg-secondary')}
+            asChild
+          >
+            <Link to="/admin/webhooks">
+              <WebhookIcon className="mr-2 h-5 w-5" />
+              <Trans>Webhooks</Trans>
             </Link>
           </Button>
 

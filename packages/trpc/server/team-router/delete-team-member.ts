@@ -6,10 +6,14 @@ import { prisma } from '@documenso/prisma';
 import { OrganisationGroupType } from '@prisma/client';
 
 import { authenticatedProcedure } from '../trpc';
-import { ZDeleteTeamMemberRequestSchema, ZDeleteTeamMemberResponseSchema } from './delete-team-member.types';
+import {
+  deleteTeamMemberMeta,
+  ZDeleteTeamMemberRequestSchema,
+  ZDeleteTeamMemberResponseSchema,
+} from './delete-team-member.types';
 
 export const deleteTeamMemberRoute = authenticatedProcedure
-  // .meta(deleteTeamMemberMeta)
+  .meta(deleteTeamMemberMeta)
   .input(ZDeleteTeamMemberRequestSchema)
   .output(ZDeleteTeamMemberResponseSchema)
   .mutation(async ({ ctx, input }) => {

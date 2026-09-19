@@ -2,15 +2,17 @@ import { OrganisationMemberRole, TeamMemberRole } from '@documenso/prisma/genera
 import OrganisationMemberSchema from '@documenso/prisma/generated/zod/modelSchema/OrganisationMemberSchema';
 import { z } from 'zod';
 
-// export const getTeamMembersMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'GET',
-//     path: '/team/{teamId}/members',
-//     summary: 'Get team members',
-//     description: 'Get all members of a team',
-//     tags: ['team'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const getTeamMembersMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'GET',
+    path: '/team/{teamId}/member',
+    summary: 'Get team members',
+    description: 'Get all members of a team',
+    tags: ['team'],
+  },
+};
 
 export const ZGetTeamMembersRequestSchema = z.object({
   teamId: z.number(),

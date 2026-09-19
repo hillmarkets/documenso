@@ -6,12 +6,13 @@ import { Prisma } from '@prisma/client';
 
 import { authenticatedProcedure } from '../trpc';
 import {
+  getOrganisationMembersMeta,
   ZFindOrganisationMembersRequestSchema,
   ZFindOrganisationMembersResponseSchema,
 } from './find-organisation-members.types';
 
 export const findOrganisationMembersRoute = authenticatedProcedure
-  //   .meta(getOrganisationMembersMeta)
+  .meta(getOrganisationMembersMeta)
   .input(ZFindOrganisationMembersRequestSchema)
   .output(ZFindOrganisationMembersResponseSchema)
   .query(async ({ input, ctx }) => {

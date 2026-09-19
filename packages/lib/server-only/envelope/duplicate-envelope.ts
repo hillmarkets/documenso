@@ -231,7 +231,6 @@ export const duplicateEnvelope = async ({ id, userId, teamId, overrides }: Dupli
     await triggerWebhook({
       event: WebhookTriggerEvents.DOCUMENT_CREATED,
       data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(refetchedEnvelope)),
-      userId: userId,
       teamId: teamId,
     });
   }

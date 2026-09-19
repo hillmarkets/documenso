@@ -8,12 +8,13 @@ import { Prisma } from '@prisma/client';
 
 import { authenticatedProcedure } from '../trpc';
 import {
+  getOrganisationMemberInvitesMeta,
   ZFindOrganisationMemberInvitesRequestSchema,
   ZFindOrganisationMemberInvitesResponseSchema,
 } from './find-organisation-member-invites.types';
 
 export const findOrganisationMemberInvitesRoute = authenticatedProcedure
-  //   .meta(getOrganisationMemberInvitesMeta)
+  .meta(getOrganisationMemberInvitesMeta)
   .input(ZFindOrganisationMemberInvitesRequestSchema)
   .output(ZFindOrganisationMemberInvitesResponseSchema)
   .query(async ({ input, ctx }) => {

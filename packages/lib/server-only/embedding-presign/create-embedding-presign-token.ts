@@ -4,6 +4,7 @@ import { DateTime } from 'luxon';
 import { AppError, AppErrorCode } from '../../errors/app-error';
 import { env } from '../../utils/env';
 import { getApiTokenByToken } from '../public-api/get-api-token-by-token';
+import { requireTeamScopedToken } from '../public-api/require-team-scoped-token';
 
 export type CreateEmbeddingPresignTokenOptions = {
   apiToken: string;
@@ -22,7 +23,10 @@ export const createEmbeddingPresignToken = async ({
 }: CreateEmbeddingPresignTokenOptions) => {
   try {
     // Validate the API token
-    const validatedToken = await getApiTokenByToken({ token: apiToken, bypassRateLimit: true });
+    const validatedToken = requireTeamScopedToken(
+      await getApiTokenByToken({ token: apiToken, bypassRateLimit: true }),
+      'Embedding presign',
+    );
 
     const now = DateTime.now();
 

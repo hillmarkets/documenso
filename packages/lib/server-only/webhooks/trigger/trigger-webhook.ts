@@ -1,20 +1,21 @@
 import type { WebhookTriggerEvents } from '@prisma/client';
 
 import { jobs } from '../../../jobs/client';
+import { logger } from '../../../utils/logger';
 import { getAllWebhooksByEventTrigger } from '../get-all-webhooks-by-event-trigger';
 
 export type TriggerWebhookOptions = {
   event: WebhookTriggerEvents;
   data: Record<string, unknown>;
-  userId: number;
   teamId: number;
 };
 
-export const triggerWebhook = async ({ event, data, userId, teamId }: TriggerWebhookOptions) => {
+export const triggerWebhook = async ({ event, data, teamId }: TriggerWebhookOptions) => {
   try {
-    const registeredWebhooks = await getAllWebhooksByEventTrigger({ event, userId, teamId });
+    const registeredWebhooks = await getAllWebhooksByEventTrigger({ event, teamId });
 
     if (registeredWebhooks.length === 0) {
+      logger.debug({ msg: 'No webhooks registered for event', event, teamId });
       return;
     }
 
@@ -26,6 +27,7 @@ export const triggerWebhook = async ({ event, data, userId, teamId }: TriggerWeb
             event,
             webhookId: webhook.id,
             data,
+            teamId,
           },
         });
       }),

@@ -3,6 +3,7 @@ import { AppError, AppErrorCode } from '@documenso/lib/errors/app-error';
 import { createEmbeddingPresignToken } from '@documenso/lib/server-only/embedding-presign/create-embedding-presign-token';
 import { getOrganisationClaimByTeamId } from '@documenso/lib/server-only/organisation/get-organisation-claims';
 import { getApiTokenByToken } from '@documenso/lib/server-only/public-api/get-api-token-by-token';
+import { requireTeamScopedToken } from '@documenso/lib/server-only/public-api/require-team-scoped-token';
 
 import { procedure } from '../trpc';
 import {
@@ -32,7 +33,7 @@ export const createEmbeddingPresignTokenRoute = procedure
       const { expiresIn, scope } = input;
 
       if (IS_BILLING_ENABLED()) {
-        const token = await getApiTokenByToken({ token: apiToken });
+        const token = requireTeamScopedToken(await getApiTokenByToken({ token: apiToken }), 'Embedding presign');
 
         if (!token.userId) {
           throw new AppError(AppErrorCode.UNAUTHORIZED, {

@@ -4,11 +4,13 @@ import { INTERNAL_CLAIM_ID } from '@documenso/lib/types/subscription';
 import { OrganisationType } from '@prisma/client';
 import { adminProcedure } from '../trpc';
 import {
+  createAdminOrganisationMeta,
   ZCreateAdminOrganisationRequestSchema,
   ZCreateAdminOrganisationResponseSchema,
 } from './create-admin-organisation.types';
 
 export const createAdminOrganisationRoute = adminProcedure
+  .meta(createAdminOrganisationMeta)
   .input(ZCreateAdminOrganisationRequestSchema)
   .output(ZCreateAdminOrganisationResponseSchema)
   .mutation(async ({ input, ctx }) => {

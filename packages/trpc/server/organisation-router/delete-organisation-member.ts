@@ -1,12 +1,13 @@
 import { authenticatedProcedure } from '../trpc';
 import {
+  deleteOrganisationMemberMeta,
   ZDeleteOrganisationMemberRequestSchema,
   ZDeleteOrganisationMemberResponseSchema,
 } from './delete-organisation-member.types';
 import { deleteOrganisationMembers } from './delete-organisation-members';
 
 export const deleteOrganisationMemberRoute = authenticatedProcedure
-  //   .meta(deleteOrganisationMemberMeta)
+  .meta(deleteOrganisationMemberMeta)
   .input(ZDeleteOrganisationMemberRequestSchema)
   .output(ZDeleteOrganisationMemberResponseSchema)
   .mutation(async ({ ctx, input }) => {

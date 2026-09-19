@@ -3,9 +3,10 @@ import { enableUser } from '@documenso/lib/server-only/user/enable-user';
 import { getUserById } from '@documenso/lib/server-only/user/get-user-by-id';
 
 import { adminProcedure } from '../trpc';
-import { ZEnableUserRequestSchema, ZEnableUserResponseSchema } from './enable-user.types';
+import { enableUserMeta, ZEnableUserRequestSchema, ZEnableUserResponseSchema } from './enable-user.types';
 
 export const enableUserRoute = adminProcedure
+  .meta(enableUserMeta)
   .input(ZEnableUserRequestSchema)
   .output(ZEnableUserResponseSchema)
   .mutation(async ({ input, ctx }) => {

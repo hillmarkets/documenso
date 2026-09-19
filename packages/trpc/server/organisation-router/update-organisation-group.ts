@@ -14,6 +14,7 @@ import {
 } from './update-organisation-group.types';
 
 export const updateOrganisationGroupRoute = authenticatedProcedure
+  // Session-only: the input carries only a group id, which cannot be tied to a tenant by the scope guard.
   // .meta(updateOrganisationGroupMeta)
   .input(ZUpdateOrganisationGroupRequestSchema)
   .output(ZUpdateOrganisationGroupResponseSchema)

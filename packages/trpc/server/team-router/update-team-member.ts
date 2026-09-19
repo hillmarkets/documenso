@@ -8,10 +8,14 @@ import { OrganisationGroupType, TeamMemberRole } from '@documenso/prisma/generat
 import { match } from 'ts-pattern';
 
 import { authenticatedProcedure } from '../trpc';
-import { ZUpdateTeamMemberRequestSchema, ZUpdateTeamMemberResponseSchema } from './update-team-member.types';
+import {
+  updateTeamMemberMeta,
+  ZUpdateTeamMemberRequestSchema,
+  ZUpdateTeamMemberResponseSchema,
+} from './update-team-member.types';
 
 export const updateTeamMemberRoute = authenticatedProcedure
-  //   .meta(updateTeamMemberMeta)
+  .meta(updateTeamMemberMeta)
   .input(ZUpdateTeamMemberRequestSchema)
   .output(ZUpdateTeamMemberResponseSchema)
   .mutation(async ({ ctx, input }) => {

@@ -1,14 +1,16 @@
 import { z } from 'zod';
 
-// export const deleteTeamMemberMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'POST',
-//     path: '/team/member/delete',
-//     summary: 'Delete team member',
-//     description: 'Delete team member',
-//     tags: ['Team'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const deleteTeamMemberMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'POST',
+    path: '/team/{teamId}/member/{memberId}/delete',
+    summary: 'Delete team member',
+    description: 'Delete team member',
+    tags: ['Team'],
+  },
+};
 
 export const ZDeleteTeamMemberRequestSchema = z.object({
   teamId: z.number().describe('The ID of the team to remove the member from.'),

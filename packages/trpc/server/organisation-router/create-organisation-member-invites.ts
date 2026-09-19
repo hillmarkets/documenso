@@ -2,11 +2,13 @@ import { createOrganisationMemberInvites } from '@documenso/lib/server-only/orga
 
 import { authenticatedProcedure } from '../trpc';
 import {
+  createOrganisationMemberInvitesMeta,
   ZCreateOrganisationMemberInvitesRequestSchema,
   ZCreateOrganisationMemberInvitesResponseSchema,
 } from './create-organisation-member-invites.types';
 
 export const createOrganisationMemberInvitesRoute = authenticatedProcedure
+  .meta(createOrganisationMemberInvitesMeta)
   .input(ZCreateOrganisationMemberInvitesRequestSchema)
   .output(ZCreateOrganisationMemberInvitesResponseSchema)
   .mutation(async ({ ctx, input }) => {

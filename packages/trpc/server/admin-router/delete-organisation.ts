@@ -3,9 +3,14 @@ import { jobs } from '@documenso/lib/jobs/client';
 import { prisma } from '@documenso/prisma';
 
 import { adminProcedure } from '../trpc';
-import { ZDeleteOrganisationRequestSchema, ZDeleteOrganisationResponseSchema } from './delete-organisation.types';
+import {
+  deleteAdminOrganisationMeta,
+  ZDeleteOrganisationRequestSchema,
+  ZDeleteOrganisationResponseSchema,
+} from './delete-organisation.types';
 
 export const deleteOrganisationRoute = adminProcedure
+  .meta(deleteAdminOrganisationMeta)
   .input(ZDeleteOrganisationRequestSchema)
   .output(ZDeleteOrganisationResponseSchema)
   .mutation(async ({ input, ctx }) => {

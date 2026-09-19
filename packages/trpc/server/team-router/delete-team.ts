@@ -6,10 +6,10 @@ import { getTeamById } from '@documenso/lib/server-only/team/get-team';
 import { TeamMemberRole } from '@prisma/client';
 
 import { authenticatedProcedure } from '../trpc';
-import { ZDeleteTeamRequestSchema, ZDeleteTeamResponseSchema } from './delete-team.types';
+import { deleteTeamMeta, ZDeleteTeamRequestSchema, ZDeleteTeamResponseSchema } from './delete-team.types';
 
 export const deleteTeamRoute = authenticatedProcedure
-  // .meta(deleteTeamMeta)
+  .meta(deleteTeamMeta)
   .input(ZDeleteTeamRequestSchema)
   .output(ZDeleteTeamResponseSchema)
   .mutation(async ({ input, ctx }) => {

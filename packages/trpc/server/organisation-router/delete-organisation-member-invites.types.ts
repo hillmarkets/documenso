@@ -1,14 +1,16 @@
 import { z } from 'zod';
 
-// export const deleteOrganisationMemberInvitesMeta: TrpcOpenApiMeta = {
-//   openapi: {
-//     method: 'POST',
-//     path: '/organisation/member/delete-many',
-//     summary: 'Delete organisation member invites',
-//     description: 'Delete organisation member invites',
-//     tags: ['Organisation'],
-//   },
-// };
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const deleteOrganisationMemberInvitesMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'POST',
+    path: '/organisation/{organisationId}/member/invite/delete-many',
+    summary: 'Delete organisation member invites',
+    description: 'Delete organisation member invites',
+    tags: ['Organisation'],
+  },
+};
 
 export const ZDeleteOrganisationMemberInvitesRequestSchema = z.object({
   organisationId: z.string(),

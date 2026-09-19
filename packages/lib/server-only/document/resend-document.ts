@@ -325,7 +325,6 @@ export const resendDocument = async ({ id, userId, recipients, teamId, requestMe
   await triggerWebhook({
     event: WebhookTriggerEvents.DOCUMENT_REMINDER_SENT,
     data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(envelope)),
-    userId: envelope.userId,
     teamId: envelope.teamId,
   });
 

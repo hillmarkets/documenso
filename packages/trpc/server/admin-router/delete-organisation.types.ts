@@ -1,5 +1,18 @@
 import { z } from 'zod';
 
+import type { TrpcRouteMeta } from '../trpc-instance';
+
+export const deleteAdminOrganisationMeta: TrpcRouteMeta = {
+  openapi: {
+    method: 'POST',
+    path: '/admin/organisation/{organisationId}/delete',
+    summary: 'Delete organisation',
+    description:
+      'Delete any organisation. `organisationName` must match exactly. Requires a session admin or an INSTANCE-scoped API token.',
+    tags: ['Admin'],
+  },
+};
+
 export const ZDeleteOrganisationRequestSchema = z.object({
   organisationId: z.string().min(1),
   /**

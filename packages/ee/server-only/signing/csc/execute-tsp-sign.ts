@@ -446,7 +446,6 @@ export const executeTspSign = async (opts: ExecuteTspSignOptions): Promise<Execu
   await triggerWebhook({
     event: WebhookTriggerEvents.DOCUMENT_RECIPIENT_COMPLETED,
     data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(envelopeWithRelations)),
-    userId: envelope.userId,
     teamId: envelope.teamId,
   });
 
@@ -540,7 +539,6 @@ export const executeTspSign = async (opts: ExecuteTspSignOptions): Promise<Execu
   await triggerWebhook({
     event: WebhookTriggerEvents.DOCUMENT_SIGNED,
     data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(updatedDocument)),
-    userId: updatedDocument.userId,
     teamId: updatedDocument.teamId ?? undefined,
   });
 

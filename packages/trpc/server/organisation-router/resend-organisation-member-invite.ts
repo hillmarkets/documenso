@@ -7,12 +7,13 @@ import { prisma } from '@documenso/prisma';
 
 import { authenticatedProcedure } from '../trpc';
 import {
+  resendOrganisationMemberInviteMeta,
   ZResendOrganisationMemberInviteRequestSchema,
   ZResendOrganisationMemberInviteResponseSchema,
 } from './resend-organisation-member-invite.types';
 
 export const resendOrganisationMemberInviteRoute = authenticatedProcedure
-  //   .meta(resendOrganisationMemberInviteMeta)
+  .meta(resendOrganisationMemberInviteMeta)
   .input(ZResendOrganisationMemberInviteRequestSchema)
   .output(ZResendOrganisationMemberInviteResponseSchema)
   .mutation(async ({ ctx, input }) => {

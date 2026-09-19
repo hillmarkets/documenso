@@ -5,9 +5,10 @@ import { prisma } from '@documenso/prisma';
 import { OrganisationMemberInviteStatus } from '@prisma/client';
 
 import { adminProcedure } from '../trpc';
-import { ZGetAdminTeamRequestSchema, ZGetAdminTeamResponseSchema } from './get-admin-team.types';
+import { getAdminTeamMeta, ZGetAdminTeamRequestSchema, ZGetAdminTeamResponseSchema } from './get-admin-team.types';
 
 export const getAdminTeamRoute = adminProcedure
+  .meta(getAdminTeamMeta)
   .input(ZGetAdminTeamRequestSchema)
   .output(ZGetAdminTeamResponseSchema)
   .query(async ({ input, ctx }) => {
