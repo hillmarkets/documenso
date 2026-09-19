@@ -11,9 +11,24 @@ concurrency:
 
 jobs:
   e2e_tests:
-    name: 'E2E Tests'
-    timeout-minutes: 60
-    runs-on: warp-ubuntu-2204-x64-8x
+    # Upstream runs the whole suite on an 8-core WarpBuild runner. GitHub-hosted
+    # runners are smaller, so the API project gets its own machine and the UI
+    # project is sharded across several.
+    name: 'E2E Tests (${{ matrix.name }})'
+    timeout-minutes: 90
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            args: '--project=api'
+          - name: ui-1
+            args: '--project=ui --project=license --shard=1/3'
+          - name: ui-2
+            args: '--project=ui --project=license --shard=2/3'
+          - name: ui-3
+            args: '--project=ui --project=license --shard=3/3'
     steps:
       - uses: actions/checkout@v4
 
@@ -39,6 +54,7 @@ jobs:
       - name: Run Playwright tests
         run: npm run ci
         env:
+          E2E_TEST_PATH: ${{ matrix.args }}
           # Needed since we use next start which will set the NODE_ENV to production
           NEXT_PRIVATE_SIGNING_LOCAL_FILE_PATH: './example/cert.p12'
           DANGEROUS_BYPASS_RATE_LIMITS: 'true'
@@ -46,7 +62,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results
+          name: test-results-${{ matrix.name }}
           path: 'packages/app-tests/**/test-results/*'
           retention-days: 7
     env:

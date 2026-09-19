@@ -51,7 +51,11 @@ export const NEXT_PRIVATE_USE_LEGACY_SIGNING_SUBFILTER = () =>
 export const NEXT_PRIVATE_INTERNAL_WEBAPP_URL = () =>
   env('NEXT_PRIVATE_INTERNAL_WEBAPP_URL') ?? NEXT_PUBLIC_WEBAPP_URL();
 
-export const IS_BILLING_ENABLED = () => env('NEXT_PUBLIC_FEATURE_BILLING_ENABLED') === 'true';
+/**
+ * Billing was removed with the enterprise package. Kept as a function so the
+ * remaining guards in upstream code stay untouched (they are all dead branches).
+ */
+export const IS_BILLING_ENABLED = () => false;
 
 /**
  * Whether this instance is Documenso Cloud (managed SaaS).
@@ -103,13 +107,11 @@ export const NEXT_PRIVATE_SIGNING_TRANSPORT = () => env('NEXT_PRIVATE_SIGNING_TR
  * Advanced and Qualified Electronic Signatures (AES/QES). It is instance-wide
  * and mutually exclusive with the other signing transports.
  */
-export const IS_INSTANCE_CSC_MODE = (): boolean => {
-  if (typeof window === 'undefined') {
-    return env('NEXT_PRIVATE_SIGNING_TRANSPORT') === 'csc';
-  }
-
-  return env('NEXT_PUBLIC_SIGNING_TRANSPORT_IS_CSC') === 'true';
-};
+/**
+ * Cloud Signature Consortium signing was removed with the enterprise package.
+ * Kept as a function so the remaining guards in upstream code stay untouched.
+ */
+export const IS_INSTANCE_CSC_MODE = (): boolean => false;
 
 /**
  * The default signature level applied to envelopes created on a CSC-mode

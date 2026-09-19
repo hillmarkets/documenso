@@ -4,14 +4,11 @@ import type { OrganisationMemberRole, TeamMemberRole } from '@prisma/client';
 import {
   BracesIcon,
   Building2Icon,
-  CreditCardIcon,
   Globe2Icon,
   GroupIcon,
   LockIcon,
-  MailboxIcon,
   Settings2Icon,
   SettingsIcon,
-  ShieldCheckIcon,
   UserIcon,
   Users2Icon,
   WebhookIcon,
@@ -127,16 +124,6 @@ export const getSettingsNavGroups = ({
             label: msg`Certificates`,
             isSubNav: true,
           },
-          ...((isBillingEnabled && organisation.organisationClaim.flags.emailDomains) || isDocumensoCloud
-            ? [
-                {
-                  key: 'email-domains',
-                  path: `/o/${organisation.url}/settings/email-domains`,
-                  label: msg`Email Domains`,
-                  icon: MailboxIcon,
-                },
-              ]
-            : []),
           {
             key: 'teams',
             path: `/o/${organisation.url}/settings/teams`,
@@ -167,26 +154,6 @@ export const getSettingsNavGroups = ({
             label: msg`Webhooks`,
             icon: WebhookIcon,
           },
-          ...((isBillingEnabled && organisation.organisationClaim.flags.authenticationPortal) || isDocumensoCloud
-            ? [
-                {
-                  key: 'sso',
-                  path: `/o/${organisation.url}/settings/sso`,
-                  label: msg`SSO`,
-                  icon: ShieldCheckIcon,
-                },
-              ]
-            : []),
-          ...(isBillingEnabled
-            ? [
-                {
-                  key: 'billing',
-                  path: `/o/${organisation.url}/settings/billing`,
-                  label: msg`Billing`,
-                  icon: CreditCardIcon,
-                },
-              ]
-            : []),
         ],
       }
     : null;
@@ -294,16 +261,6 @@ export const getSettingsNavGroups = ({
         label: msg`Security`,
         icon: LockIcon,
       },
-      ...(IS_BILLING_ENABLED() && hasManageableBillingOrgs
-        ? [
-            {
-              key: 'billing',
-              path: '/settings/billing',
-              label: msg`Billing`,
-              icon: CreditCardIcon,
-            },
-          ]
-        : []),
     ],
   };
 

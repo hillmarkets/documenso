@@ -17,5 +17,3 @@
 '🚨 .env changes 🚨':
   - .env.example
 
-'pkg: ee changes':
-  - packages/ee/**

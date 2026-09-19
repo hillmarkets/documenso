@@ -1,6 +1,5 @@
 import { ORGANISATION_MEMBER_ROLE_PERMISSIONS_MAP } from '@documenso/lib/constants/organisations';
 import { AppError, AppErrorCode } from '@documenso/lib/errors/app-error';
-import { stripe } from '@documenso/lib/server-only/stripe';
 import { buildOrganisationWhereQuery } from '@documenso/lib/utils/organisations';
 import { prisma } from '@documenso/prisma';
 import { Prisma } from '@prisma/client';
@@ -69,12 +68,4 @@ export const updateOrganisationRoute = authenticatedProcedure
 
         throw err;
       });
-
-    if (updatedOrganisation.customerId) {
-      await stripe.customers.update(updatedOrganisation.customerId, {
-        metadata: {
-          organisationName: data.name,
-        },
-      });
-    }
   });

@@ -57,7 +57,6 @@ Documenso is an open-source document signing platform built as a **monorepo** us
 | `@documenso/email`   | Email templates and mailer (React Email)                  |
 | `@documenso/auth`    | Authentication (OAuth via Arctic, WebAuthn/Passkeys)      |
 | `@documenso/signing` | PDF signing (Local P12, Google Cloud KMS)                 |
-| `@documenso/ee`      | Enterprise Edition features                               |
 | `@documenso/assets`  | Static assets                                             |
 
 ### Supporting Packages
