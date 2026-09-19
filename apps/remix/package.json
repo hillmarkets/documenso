@@ -10,7 +10,7 @@
     "dev:billing": "bash .bin/stripe-dev.sh",
     "start": "npm run with:env -- cross-env NODE_ENV=production node build/server/main.js",
     "clean": "rimraf .react-router && rimraf node_modules",
-    "typecheck": "react-router typegen && tsc",
+    "typecheck": "react-router typegen && cross-env NODE_OPTIONS=--max-old-space-size=6144 tsc",
     "with:env": "dotenv -e ../../.env -e ../../.env.local --"
   },
   "dependencies": {
