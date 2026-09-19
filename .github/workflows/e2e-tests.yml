@@ -1,9 +1,16 @@
 name: Playwright Tests
+# Runs on pull requests only: a PR merges only when this is green, so re-running
+# the whole browser suite on the resulting push to main would be pure duplication.
 on:
-  push:
-    branches: ['main']
   pull_request:
     branches: ['main']
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/labeler.yml'
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
