@@ -153,5 +153,5 @@ reported to [Documenso](https://github.com/documenso/documenso/security/policy).
 ## License
 
 AGPL-3.0. Copyright of the upstream code remains with Documenso, Inc. and its
-contributors; changes in this fork are copyright Hill and released under
+contributors; changes in this fork are copyright Hill Technologies Inc. and released under
 the same license.
