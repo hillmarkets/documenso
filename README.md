@@ -1,253 +1,157 @@
-<img src="https://github.com/documenso/documenso/assets/13398220/a643571f-0239-46a6-a73e-6bef38d1228b" alt="Documenso Logo">
+# Documenso — Hill Markets fork
 
-<p align="center" style="margin-top: 20px">
-  <p align="center">
-  The Open Source DocuSign Alternative.
-  <br>
-    <a href="https://documenso.com"><strong>Learn more »</strong></a>
-    <br />
-    <br />
-    <a href="https://documen.so/discord">Discord</a>
-    ·
-    <a href="https://documenso.com">Website</a>
-    ·
-    <a href="https://docs.documenso.com">Documentation</a>
-    ·
-    <a href="https://github.com/documenso/documenso/issues">Issues</a>
-    ·
-    <a href="https://documen.so/live">Upcoming Releases</a>
-    ·
-    <a href="https://documen.so/roadmap">Roadmap</a>
-  </p>
-</p>
+A fork of [Documenso](https://github.com/documenso/documenso), the open-source
+document signing platform, maintained by [Hill Markets](https://hill.com) for
+self-hosted use. It tracks upstream `main` and adds an instance-wide API.
 
-<p align="center">
-   <a href="https://documen.so/discord"><img src="https://img.shields.io/badge/Discord-documen.so/discord-%235865F2" alt="Join Documenso on Discord"></a>
-   <a href="https://github.com/documenso/documenso/stargazers"><img src="https://img.shields.io/github/stars/documenso/documenso" alt="Github Stars"></a>
-   <a href="https://github.com/documenso/documenso/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
-   <a href="https://github.com/documenso/documenso/pulse"><img src="https://img.shields.io/github/commit-activity/m/documenso/documenso" alt="Commits-per-month"></a>
-   <a href="https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/documenso/documenso">
-   <img alt="open in devcontainer" src="https://img.shields.io/static/v1?label=Dev%20Containers&message=Enabled&color=blue&logo=visualstudiocode" />
-   </a>
-   <a href="CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg" alt="Contributor Covenant"></a>
-</p>
+This repository is **AGPL-3.0 only** (see [LICENSE](LICENSE)). Upstream's
+commercially licensed `packages/ee` (Stripe billing, email domains, Cloud
+Signature Consortium signing, SSO portal) has been removed rather than left
+inert, so the tree contains no code that requires a Documenso Enterprise
+subscription. The `Subscription` and `SubscriptionClaim` models remain because
+organisation feature flags and limits live on them; billing itself is gone.
 
-<div align="center">
-  <img src="https://github.com/documenso/documenso/assets/13398220/d96ed533-6f34-4a97-be9b-442bdb189c69" style="width: 80%;" />
-</div>
+## What's different from upstream
 
-## About Documenso
+### Instance- and organisation-scoped API
 
-Signing documents digitally should be fast and easy and should be the best practice for every document signed worldwide. This is technically quite easy today, but it also introduces a new party to every signature: The signing tool providers. While this is not a problem in itself, it should make us think about how we want these providers of trust to work. Documenso aims to be the world's most trusted document-signing tool. This trust is built by empowering you to self-host Documenso and review how it works under the hood.
+Upstream's API is scoped to a single team: every token belongs to a team, and
+webhooks fire per team. This fork adds two more scopes so a backend can manage a
+whole instance.
 
-Join us in creating the next generation of open trust infrastructure.
+| Token scope | Can reach | Tenant targeting |
+|---|---|---|
+| `TEAM` | one team (upstream behaviour, unchanged) | implicit |
+| `ORGANISATION` | every team in one organisation, organisation management | `x-team-id: <id>` header |
+| `INSTANCE` | everything, including creating organisations and users | `x-team-id` and/or `x-organisation-id` headers |
 
-## Recognition
+Webhooks follow the same model: an event on a team is delivered to that team's
+webhooks, its organisation's webhooks and every instance webhook.
 
-<p align="center">
-  <a href="https://www.producthunt.com/posts/documenso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-documenso" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=395047&theme=light&period=daily" alt="Documenso - The&#0032;open&#0032;source&#0032;DocuSign&#0032;alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-  <a href="https://www.producthunt.com/posts/documenso?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-documenso" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=395047&theme=light" alt="Documenso - The&#0032;Open&#0032;Source&#0032;DocuSign&#0032;Alternative&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-</p>
+- Instance tokens and webhooks are created under **Admin → API Tokens /
+  Webhooks**; organisation ones under **Organisation settings → API Tokens /
+  Webhooks**.
+- Organisation and team management, and a curated set of admin operations, are
+  exposed over the v2 API (`/api/v2/organisation/*`, `/api/v2/team/*`,
+  `/api/v2/admin/*`). Browse the live OpenAPI document at
+  `/api/v2/openapi.json` on any instance.
+- Headers are the tenant-targeting mechanism (the Stripe Connect pattern), so
+  the ~80 existing team-scoped endpoints are unchanged and upstream merges stay
+  cheap.
 
-## Community and Next Steps 🎯
+Design notes and known limitations:
+[`docs/superpowers/specs/2026-09-18-instance-and-org-scoped-api-design.md`](docs/superpowers/specs/2026-09-18-instance-and-org-scoped-api-design.md).
 
-- Try Documenso by self-hosting it or signing up at [documenso.com](https://documenso.com).
-- Tell us what you think in the [Discussions](https://github.com/documenso/documenso/discussions).
-- Join the [Discord server](https://documen.so/discord) for any questions and getting to know other community members.
-- ⭐ the repository to help us raise awareness.
-- Open detailed [issues](https://github.com/documenso/documenso/issues) to report bugs or propose features.
+### Other changes
 
-## Contributing
+- **American English.** Upstream writes its source strings in British English
+  and relies on Crowdin to translate the `en` locale to US spelling.
+  `scripts/americanize-en-catalog.mjs` closes the gap after each upstream sync.
+- **Enterprise package removed.** Details and behaviour changes (for example,
+  organisation member caps are no longer enforced) in
+  [`docs/superpowers/specs/2026-09-19-remove-enterprise-package-design.md`](docs/superpowers/specs/2026-09-19-remove-enterprise-package-design.md).
+- **CI runs on GitHub-hosted runners.** E2E is split across API and three UI
+  shards; images publish to GitHub Container Registry.
 
-> **Note**: We no longer accept external pull requests, aside from a small group of trusted contributors we reach out to directly. The best way to contribute is through detailed issues. Read [Why We're Pausing External Pull Requests](https://documenso.com/blog/why-we-re-pausing-external-pull-requests) for the reasoning.
+## Tech stack
 
-- Documenso stays open source. You can read, audit, run, and fork the code.
-- To report issues or propose changes, see our [contribution guide](https://github.com/documenso/documenso/blob/main/CONTRIBUTING.md).
+- [React Router](https://reactrouter.com/) (Remix) on [Hono](https://hono.dev/)
+- [tRPC](https://trpc.io/) with an OpenAPI surface generated by `trpc-to-openapi`
+- [Prisma](https://www.prisma.io/) on PostgreSQL
+- [Tailwind CSS](https://tailwindcss.com/) and [Lingui](https://lingui.dev/)
+- [Playwright](https://playwright.dev/) and [Vitest](https://vitest.dev/)
 
-## Contact us
-
-Contact us if you are interested in our Enterprise plan for large organizations that need extra flexibility and control.
-
-<a href="https://cal.com/timurercan/enterprise-customers?utm_source=banner&utm_campaign=oss"><img alt="Book us with Cal.com" src="https://cal.com/book-with-cal-dark.svg" /></a>
-
-## Tech Stack
-
-<p align="left">
-  <a href="https://www.typescriptlang.org"><img src="https://shields.io/badge/TypeScript-3178C6?logo=TypeScript&logoColor=FFF&style=flat-square" alt="TypeScript"></a>
-  <a href="https://prisma.io"><img width="122" height="20" src="http://made-with.prisma.io/indigo.svg" alt="Made with Prisma" /></a>
-  <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/tailwindcss-0F172A?&logo=tailwindcss" alt="Tailwind CSS"></a>
-  <a href=""><img src="" alt=""></a>
-  <a href=""><img src="" alt=""></a>
-  <a href=""><img src="" alt=""></a>
-  <a href=""><img src="" alt=""></a>
-  <a href=""><img src="" alt=""></a>
-</p>
-
-- [TypeScript](https://www.typescriptlang.org/) - Language
-- [React Router v7](https://reactrouter.com/) - Framework
-- [Hono](https://hono.dev/) - Server
-- [Prisma](https://www.prisma.io/) - ORM
-- [Tailwind CSS](https://tailwindcss.com/) - CSS
-- [shadcn/ui](https://ui.shadcn.com/) + [Radix UI](https://www.radix-ui.com/) - Component Library
-- [react-email](https://react.email/) - Email Templates
-- [Lingui](https://lingui.dev/) - Internationalization
-- [tRPC](https://trpc.io/) - API
-- [@libpdf/core](https://www.npmjs.com/package/@libpdf/core) - PDF Signatures
-- [pdf.js](https://mozilla.github.io/pdf.js/) - Viewing PDFs
-- [@cantoo/pdf-lib](https://github.com/cantoo-scribe/pdf-lib) - PDF manipulation
-- [Stripe](https://stripe.com/) - Payments
-- [Biome](https://biomejs.dev/) - Linting & Formatting
-- [Playwright](https://playwright.dev/) - E2E Testing
-
-<!-- - Support for [opensignpdf (requires Java on server)](https://github.com/open-pdf-sign) is currently planned. -->
-
-## Local Development
+## Local development
 
 ### Requirements
 
-To run Documenso locally, you will need
+- Node.js 24 or later
+- Docker (the dev stack runs Postgres, Redis, MinIO, Inbucket and Gotenberg in
+  containers)
 
-- Node.js (v24 or above)
-- Postgres SQL Database
-- Docker (optional)
-
-### Developer Quickstart
-
-> **Note**: This is a quickstart for developers. It assumes that you have both [docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/) installed on your machine.
-
-Want to get up and running quickly? Follow these steps:
-
-1. [Fork this repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks) to your GitHub account.
-
-After forking the repository, clone it to your local device by using the following command:
+### Quickstart
 
 ```sh
-git clone https://github.com/<your-username>/documenso
+git clone https://github.com/hillmarkets/documenso
+cd documenso
+cp .env.example .env
+npm run d          # install, start containers, migrate, seed, run the dev server
 ```
 
-2. Set up your `.env` file using the recommendations in the `.env.example` file. Alternatively, just run `cp .env.example .env` to get started with our handpicked defaults.
+`npm run d` is shorthand for `npm run dx` (dependencies + containers +
+migrations + seed) followed by `npm run dev`.
 
-3. Run `npm run dx` in the root directory
+Access points once it's up:
 
-   - This will spin up a postgres database and inbucket mailserver in a docker container.
+| Service | URL |
+|---|---|
+| App | http://localhost:3000 |
+| Mail (Inbucket) | http://localhost:9000 |
+| S3 console (MinIO) | http://localhost:9001 |
+| Postgres | `localhost:54320` |
 
-4. Run `npm run dev` in the root directory
-
-5. Want it even faster? Just use
+### Useful commands
 
 ```sh
-npm run d
+npm run lint                     # Biome
+npm run test -w @documenso/lib   # unit tests
+npm run build -w @documenso/remix
+npm run with:env -- <cmd>        # run anything with .env loaded
 ```
 
-#### Access Points for Your Application
+End-to-end tests live in `packages/app-tests`. The API project needs no
+browser; the UI project needs `npx playwright install chromium`.
 
-1. **App** - http://localhost:3000
-2. **Incoming Mail Access** - http://localhost:9000
-3. **Database Connection Details**
+```sh
+cd packages/app-tests
+NODE_OPTIONS='--import tsx' NODE_ENV=test npx dotenv -e ../../.env -- \
+  npx playwright test --project=api
+```
 
-   - **Port**: 54320
-   - **Connection**: Use your favorite database client to connect using the provided port.
+### Keeping up with upstream
 
-4. **S3 Storage Dashboard** - http://localhost:9001
+```sh
+git remote add upstream https://github.com/documenso/documenso.git   # once
+git fetch upstream
+git merge upstream/main
+node scripts/americanize-en-catalog.mjs
+```
 
-## Developer Setup
+Conflicts are most likely in files that used to import `@documenso/ee`.
 
-### Manual Setup
+## Deployment
 
-Follow the [manual setup guide](https://docs.documenso.com/docs/developers/local-development/manual) to configure Documenso on your local machine.
+Images are published to `ghcr.io/hillmarkets/documenso` on every `v*` tag
+(`latest` for stable releases, `rc` for release candidates, plus the version and
+commit SHA). `docker/production/compose.yml` is a starting point for a
+single-host deployment; upstream's
+[self-hosting documentation](https://docs.documenso.com/docs/self-hosting)
+applies to this fork with the exception of anything under "Enterprise".
 
-### Run in Gitpod
-
-- Click below to launch a ready-to-use Gitpod workspace in your browser.
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/documenso/documenso)
-
-### Run in DevContainer
-
-We support DevContainers for VSCode. [Click here to get started.](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/documenso/documenso)
-
-### Video walkthrough
-
-If you're a visual learner and prefer to watch a video walkthrough of setting up Documenso locally, check out this video:
-
-[![Watch the video](https://img.youtube.com/vi/Y0ppIQrEnZs/hqdefault.jpg)](https://youtu.be/Y0ppIQrEnZs)
-
-## Docker
-
-We provide official Docker images on [DockerHub](https://hub.docker.com/r/documenso/documenso) and [GitHub Container Registry](https://ghcr.io/documenso/documenso).
-
-For setup instructions, see the [Docker Deployment](https://docs.documenso.com/docs/self-hosting/deployment/docker) and [Docker Compose](https://docs.documenso.com/docs/self-hosting/deployment/docker-compose) guides.
-
-## Self Hosting
-
-We support a variety of deployment methods including Docker, Docker Compose, Railway, Kubernetes, and manual deployment.
-
-For full instructions, requirements, and configuration details, see the [Self Hosting documentation](https://docs.documenso.com/docs/self-hosting).
-
-### One-Click Deploys
-
-> [!NOTE]
-> Want to see another provider listed here? Please [open a provider request](https://github.com/documenso/documenso/issues/new?template=deploy-provider-request.yml) instead of a PR so the community can signal interest. PRs adding deploy badges without a prior issue will be closed.
-
-<table>
-  <tr>
-    <td align="center" width="200">
-      <a href="https://railway.com/deploy/DjrRRX?referralCode=EZR3s0&utm_medium=integration&utm_source=template&utm_campaign=generic">
-        <img src="https://railway.com/button.svg" alt="Deploy on Railway" height="40" />
-      </a>
-    </td>
-    <td align="center" width="200">
-      <a href="https://render.com/deploy?repo=https://github.com/documenso/documenso">
-        <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" height="40" />
-      </a>
-    </td>
-    <td align="center" width="200">
-      <a href="https://app.koyeb.com/deploy?type=git&repository=github.com/documenso/documenso&branch=main&name=documenso-app&builder=dockerfile&dockerfile=/docker/Dockerfile">
-        <img src="https://www.koyeb.com/static/images/deploy/button.svg" alt="Deploy to Koyeb" height="40" />
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="200">
-      <a href="https://elest.io/open-source/documenso">
-        <img src="https://elest.io/images/logos/deploy-to-elestio-btn.png" alt="Deploy on Elestio" height="40" />
-      </a>
-    </td>
-    <td align="center" width="200"></td>
-    <td align="center" width="200"></td>
-  </tr>
-</table>
-
-## Security
-
-If you believe you have found a security vulnerability in Documenso, please report it through our [Security Policy](https://github.com/documenso/documenso/security/policy). We prioritize private reports via [GitHub Security Advisories](https://github.com/documenso/documenso/security/advisories/new). See [SECURITY.md](./SECURITY.md) for scope and details.
+Configuration is entirely through environment variables; `.env.example` lists
+them all. Signing requires a certificate (`NEXT_PRIVATE_SIGNING_LOCAL_FILE_PATH`).
 
 ## Troubleshooting
 
-For troubleshooting self-hosted deployments, see the [Troubleshooting guide](https://docs.documenso.com/docs/self-hosting/maintenance/troubleshooting) and [Tips & Common Pitfalls](https://docs.documenso.com/docs/self-hosting/getting-started/tips).
+**No emails arrive during development.** The dev stack captures all outgoing
+mail in Inbucket at http://localhost:9000 (SMTP on `localhost:2500`).
 
-### I'm not receiving any emails when using the developer quickstart.
+**Environment variables aren't visible to a package script.** Wrap it:
+`npm run with:env -- npm run myscript` (or `npm run with:env -- npx mytool`).
 
-When using the developer quickstart, an [Inbucket](https://inbucket.org/) server will be spun up in a docker container that will store all outgoing emails locally for you to view.
+**`npm ci` hangs on Playwright's browser download.** Set
+`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` for the install and run
+`npx playwright install chromium` separately when you need the UI tests.
 
-The Web UI can be found at http://localhost:9000, while the SMTP port will be on localhost:2500.
+## Security
 
-### I can't see environment variables in my package scripts.
+Report vulnerabilities privately through
+[GitHub Security Advisories](https://github.com/hillmarkets/documenso/security/advisories/new)
+rather than public issues. Issues in code inherited from upstream should also be
+reported to [Documenso](https://github.com/documenso/documenso/security/policy).
 
-Wrap your package script with the `with:env` script like such:
+## License
 
-```
-npm run with:env -- npm run myscript
-```
-
-The same can be done when using `npx` for one of the bin scripts:
-
-```
-npm run with:env -- npx myscript
-```
-
-This will load environment variables from your `.env` and `.env.local` files.
-
-## Repo Activity
-
-![Repository Activity](https://repobeats.axiom.co/api/embed/622a2e9aa709696f7226304b5b7178a5741b3868.svg)
+AGPL-3.0. Copyright of the upstream code remains with Documenso, Inc. and its
+contributors; changes in this fork are copyright Hill Markets and released under
+the same license.
