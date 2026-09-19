@@ -121,9 +121,9 @@ Conflicts are most likely in files that used to import `@documenso/ee`.
 
 ## Deployment
 
-Images are published to `ghcr.io/hillmarkets/documenso` on every `v*` tag
-(`latest` for stable releases, `rc` for release candidates, plus the version and
-commit SHA). `docker/production/compose.yml` is a starting point for a
+Multi-arch (amd64 + arm64) images are published to
+`ghcr.io/hillmarkets/documenso` on every `v*` tag (`latest` for stable releases,
+`rc` for release candidates, plus the version and commit SHA). `docker/production/compose.yml` is a starting point for a
 single-host deployment; upstream's
 [self-hosting documentation](https://docs.documenso.com/docs/self-hosting)
 applies to this fork with the exception of anything under "Enterprise".
