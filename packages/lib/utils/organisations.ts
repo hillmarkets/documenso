@@ -122,6 +122,7 @@ export const generateDefaultOrganisationSettings = (): Omit<OrganisationGlobalSe
 
     brandingEnabled: false,
     brandingLogo: '',
+    brandingLogoDark: '',
     brandingUrl: '',
     brandingCompanyDetails: '',
     brandingColors: null,

@@ -37,6 +37,7 @@ export const getTeamSettings = async ({ userId, teamId }: GetTeamSettingsOptions
   if (teamSettings.brandingEnabled === null) {
     teamSettings.brandingEnabled = organisationSettings.brandingEnabled;
     teamSettings.brandingLogo = organisationSettings.brandingLogo;
+    teamSettings.brandingLogoDark = organisationSettings.brandingLogoDark;
     teamSettings.brandingUrl = organisationSettings.brandingUrl;
     teamSettings.brandingCompanyDetails = organisationSettings.brandingCompanyDetails;
     teamSettings.brandingColors = organisationSettings.brandingColors;
