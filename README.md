@@ -1,7 +1,7 @@
-# Documenso — Hill Markets fork
+# Documenso — Hill fork
 
 A fork of [Documenso](https://github.com/documenso/documenso), the open-source
-document signing platform, maintained by [Hill Markets](https://hill.com) for
+document signing platform, maintained by [Hill](https://hill.com) for
 self-hosted use. It tracks upstream `main` and adds an instance-wide API.
 
 This repository is **AGPL-3.0 only** (see [LICENSE](LICENSE)). Upstream's
@@ -153,5 +153,5 @@ reported to [Documenso](https://github.com/documenso/documenso/security/policy).
 ## License
 
 AGPL-3.0. Copyright of the upstream code remains with Documenso, Inc. and its
-contributors; changes in this fork are copyright Hill Markets and released under
+contributors; changes in this fork are copyright Hill Technologies Inc. and released under
 the same license.
