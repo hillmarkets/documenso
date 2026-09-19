@@ -36,6 +36,12 @@ The dark logo is optional and secondary. The **effective dark logo** is
 `brandingLogoDark || brandingLogo`. The two logos are independent uploads with
 independent clear actions: clearing one never clears the other.
 
+Team override is all-or-nothing, as for every other branding field: a team
+with its own branding (`brandingEnabled !== null`) owns both logo columns and
+inherits neither. A team that overrides and uploads only a dark logo therefore
+shows no logo on the light theme; the settings form makes this visible by
+showing the empty "Logo" tile.
+
 ## Design
 
 ### 1. Schema and inheritance
