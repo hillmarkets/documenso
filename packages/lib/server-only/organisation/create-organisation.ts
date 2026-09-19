@@ -127,7 +127,7 @@ export const createPersonalOrganisation = async ({
   const freeSubscriptionClaim = await getSubscriptionClaim(INTERNAL_CLAIM_ID.FREE);
 
   const organisation = await createOrganisation({
-    name: 'Personal Organisation',
+    name: 'Personal Organization',
     userId,
     url: orgUrl,
     type,

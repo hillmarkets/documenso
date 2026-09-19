@@ -172,7 +172,7 @@ test.describe('Unified Settings', () => {
       include: { teams: true },
     });
 
-    // Both are seeded as "Personal Organisation", so rename them to tell the switcher apart.
+    // Both are seeded as "Personal Organization", so rename them to tell the switcher apart.
     await prisma.organisation.update({ where: { id: ownedOrganisation.id }, data: { name: 'Org I Administer' } });
     await prisma.organisation.update({
       where: { id: otherOrganisation.id },
