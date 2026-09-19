@@ -1,13 +1,12 @@
 import { useAnalytics } from '@documenso/lib/client-only/hooks/use-analytics';
 import { useCurrentEnvelopeEditor } from '@documenso/lib/client-only/providers/envelope-editor-provider';
 import { useCurrentOrganisation } from '@documenso/lib/client-only/providers/organisation';
-import { DO_NOT_INVALIDATE_QUERY_ON_MUTATION } from '@documenso/lib/constants/trpc';
 import { AppError } from '@documenso/lib/errors/app-error';
 import { extractDocumentAuthMethods } from '@documenso/lib/utils/document-auth';
 import { hasOverlappingFields } from '@documenso/lib/utils/fields-overlap';
 import { getRecipientsWithMissingFields } from '@documenso/lib/utils/recipients';
 import { zEmail } from '@documenso/lib/utils/zod';
-import { trpc, trpc as trpcReact } from '@documenso/trpc/react';
+import { trpc as trpcReact } from '@documenso/trpc/react';
 import { DocumentSendEmailMessageHelper } from '@documenso/ui/components/document/document-send-email-message-helper';
 import { cn } from '@documenso/ui/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@documenso/ui/primitives/alert';
@@ -24,7 +23,6 @@ import {
 } from '@documenso/ui/primitives/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@documenso/ui/primitives/form/form';
 import { Input } from '@documenso/ui/primitives/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@documenso/ui/primitives/select';
 import { SpinnerBox } from '@documenso/ui/primitives/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@documenso/ui/primitives/tabs';
 import { Textarea } from '@documenso/ui/primitives/textarea';
@@ -98,18 +96,6 @@ export const EnvelopeDistributeDialog = ({
     watch,
     formState: { isSubmitting },
   } = form;
-
-  const { data: emailData, isLoading: isLoadingEmails } = trpc.enterprise.organisation.email.find.useQuery(
-    {
-      organisationId: organisation.id,
-      perPage: 100,
-    },
-    {
-      ...DO_NOT_INVALIDATE_QUERY_ON_MUTATION,
-    },
-  );
-
-  const emails = emailData?.data || [];
 
   const distributionMethod = watch('meta.distributionMethod');
 
@@ -333,43 +319,6 @@ export const EnvelopeDistributeDialog = ({
                             className="mt-2 flex flex-col gap-y-4 rounded-lg"
                             disabled={form.formState.isSubmitting}
                           >
-                            {organisation.organisationClaim.flags.emailDomains && (
-                              <FormField
-                                control={form.control}
-                                name="meta.emailId"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>
-                                      <Trans>Email Sender</Trans>
-                                    </FormLabel>
-                                    <FormControl>
-                                      <Select
-                                        {...field}
-                                        value={field.value === null ? '-1' : field.value}
-                                        onValueChange={(value) => field.onChange(value === '-1' ? null : value)}
-                                      >
-                                        <SelectTrigger loading={isLoadingEmails} className="bg-background">
-                                          <SelectValue />
-                                        </SelectTrigger>
-
-                                        <SelectContent>
-                                          {emails.map((email) => (
-                                            <SelectItem key={email.id} value={email.id}>
-                                              {email.email}
-                                            </SelectItem>
-                                          ))}
-
-                                          <SelectItem value={'-1'}>Documenso</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </FormControl>
-
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            )}
-
                             <FormField
                               control={form.control}
                               name="meta.emailReplyTo"

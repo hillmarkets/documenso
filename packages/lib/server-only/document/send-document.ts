@@ -1,4 +1,3 @@
-import { materializeTspAnchorsForEnvelope } from '@documenso/ee/server-only/signing/csc/materialize-anchors';
 import { resolveExpiresAt } from '@documenso/lib/constants/envelope-expiration';
 import { DOCUMENT_AUDIT_LOG_TYPE } from '@documenso/lib/types/document-audit-logs';
 import type { ApiRequestMetadata } from '@documenso/lib/universal/extract-request-metadata';
@@ -126,25 +125,14 @@ export const sendDocument = async ({ id, userId, teamId, sendEmail, requestMetad
 
   const legacyDocumentId = mapSecondaryIdToDocumentId(envelope.secondaryId);
 
-  let signingOrder = envelope.documentMeta?.signingOrder || DocumentSigningOrder.PARALLEL;
+  const signingOrder = envelope.documentMeta?.signingOrder || DocumentSigningOrder.PARALLEL;
 
-  if (isTspEnvelope(envelope) && signingOrder === DocumentSigningOrder.PARALLEL && envelope.documentMeta) {
-    console.warn(
-      `[CSC] Coercing signingOrder=PARALLEL → SEQUENTIAL for ${envelope.signatureLevel} envelope ${envelope.id} at send time. The schema-layer guard should have caught this earlier.`,
-    );
-
-    await prisma.documentMeta.update({
-      where: {
-        id: envelope.documentMeta.id,
-      },
-      data: {
-        signingOrder: DocumentSigningOrder.SEQUENTIAL,
-      },
+  // AES/QES envelopes require a Cloud Signature Consortium provider, which this
+  // instance does not ship. Refuse to send rather than seal with the wrong tier.
+  if (isTspEnvelope(envelope)) {
+    throw new AppError(AppErrorCode.NOT_SETUP, {
+      message: `Signature level ${envelope.signatureLevel} is not available on this instance.`,
     });
-
-    signingOrder = DocumentSigningOrder.SEQUENTIAL;
-
-    envelope.documentMeta.signingOrder = DocumentSigningOrder.SEQUENTIAL;
   }
 
   let recipientsToNotify = envelope.recipients;
@@ -244,12 +232,6 @@ export const sendDocument = async ({ id, userId, teamId, sendEmail, requestMetad
         fieldsToAutoInsert.push(fieldToAutoInsert);
       }
     }
-  }
-
-  if (isTspEnvelope(envelope) && envelope.status === DocumentStatus.DRAFT) {
-    await materializeTspAnchorsForEnvelope({
-      envelopeId: envelope.id,
-    });
   }
 
   const updatedEnvelope = await prisma.$transaction(async (tx) => {
