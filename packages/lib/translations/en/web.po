@@ -3491,7 +3491,7 @@ msgstr "Create and manage API tokens. See our <0>documentation</0> for more info
 
 #: apps/remix/app/routes/_authenticated+/o.$orgUrl.settings.tokens.tsx
 msgid "Create and manage organisation-wide API tokens. Pass an <0>x-team-id</0> header to act inside a team."
-msgstr "Create and manage organisation-wide API tokens. Pass an <0>x-team-id</0> header to act inside a team."
+msgstr "Create and manage organization-wide API tokens. Pass an <0>x-team-id</0> header to act inside a team."
 
 #: apps/remix/app/components/dialogs/template-use-dialog.tsx
 msgid "Create and send"
@@ -4852,7 +4852,7 @@ msgstr "Documents Received"
 
 #: apps/remix/app/components/tables/inbox-table.tsx
 msgid "Documents that have been cancelled will appear here"
-msgstr "Documents that have been cancelled will appear here"
+msgstr "Documents that have been canceled will appear here"
 
 #: apps/remix/app/components/tables/inbox-table.tsx
 msgid "Documents that have been rejected will appear here"
@@ -6779,7 +6779,7 @@ msgstr "Instance Stats"
 
 #: apps/remix/app/routes/_authenticated+/admin+/tokens.tsx
 msgid "Instance tokens can act across every organisation and team. Pass <0>x-team-id</0> or <1>x-organisation-id</1> headers to target a tenant."
-msgstr "Instance tokens can act across every organisation and team. Pass <0>x-team-id</0> or <1>x-organisation-id</1> headers to target a tenant."
+msgstr "Instance tokens can act across every organization and team. Pass <0>x-team-id</0> or <1>x-organisation-id</1> headers to target a tenant."
 
 #: apps/remix/app/routes/_authenticated+/admin+/webhooks.tsx
 #: apps/remix/app/routes/_authenticated+/admin+/webhooks.tsx
@@ -8353,7 +8353,7 @@ msgstr "Organization usage"
 
 #: apps/remix/app/routes/_authenticated+/o.$orgUrl.settings.webhooks._index.tsx
 msgid "Organisation webhooks receive events from every team in this organisation."
-msgstr "Organisation webhooks receive events from every team in this organisation."
+msgstr "Organization webhooks receive events from every team in this organization."
 
 #: apps/remix/app/routes/_authenticated+/admin+/teams.$id.tsx
 msgid "Organisation-level pending invites for this team's parent organisation."
@@ -14959,11 +14959,11 @@ msgstr "You need to be an admin to manage API tokens."
 
 #: apps/remix/app/routes/_authenticated+/o.$orgUrl.settings.tokens.tsx
 msgid "You need to be an organisation admin or manager to manage API tokens."
-msgstr "You need to be an organisation admin or manager to manage API tokens."
+msgstr "You need to be an organization admin or manager to manage API tokens."
 
 #: apps/remix/app/routes/_authenticated+/o.$orgUrl.settings.webhooks._index.tsx
 msgid "You need to be an organisation admin or manager to manage webhooks."
-msgstr "You need to be an organisation admin or manager to manage webhooks."
+msgstr "You need to be an organization admin or manager to manage webhooks."
 
 #: apps/remix/app/components/general/document-signing/document-signing-auth-page.tsx
 msgid "You need to be logged in as <0>{email}</0> to view this page."
