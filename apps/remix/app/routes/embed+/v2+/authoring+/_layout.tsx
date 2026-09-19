@@ -1,6 +1,5 @@
-import { PAID_PLAN_LIMITS } from '@documenso/ee/server-only/limits/constants';
-import { LimitsProvider } from '@documenso/ee/server-only/limits/provider/client';
 import { useAnalytics } from '@documenso/lib/client-only/hooks/use-analytics';
+import { LimitsProvider } from '@documenso/lib/client-only/providers/limits';
 import { OrganisationProvider } from '@documenso/lib/client-only/providers/organisation';
 import { APP_I18N_OPTIONS } from '@documenso/lib/constants/i18n';
 import { verifyEmbeddingPresignToken } from '@documenso/lib/server-only/embedding-presign/verify-embedding-presign-token';
@@ -143,15 +142,7 @@ export default function AuthoringLayout() {
     <OrganisationProvider organisation={organisation}>
       <TeamProvider team={team}>
         <TrpcProvider headers={{ authorization: `Bearer ${token}`, 'x-team-Id': team.id.toString() }}>
-          <LimitsProvider
-            disableLimitsFetch={true}
-            initialValue={{
-              quota: PAID_PLAN_LIMITS,
-              remaining: PAID_PLAN_LIMITS,
-              maximumEnvelopeItemCount: organisationClaim.envelopeItemCount,
-            }}
-            teamId={team.id}
-          >
+          <LimitsProvider maximumEnvelopeItemCount={organisationClaim.envelopeItemCount}>
             {hasFinishedInit ? (
               <Outlet />
             ) : (
