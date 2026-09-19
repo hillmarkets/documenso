@@ -81,7 +81,9 @@ export default defineConfig({
     {
       name: 'api',
       testMatch: /e2e\/api\/.*\.spec\.ts/,
-      workers: 10, // Limited by DB connections before it gets flakey.
+      // Limited by DB connections before it gets flakey. CI runners are
+      // smaller than upstream's, so scale with the machine there.
+      workers: process.env.CI ? Math.max(calculateWorkers(), 2) : 10,
     },
     // License tests that share a single license file - must run serially
     {
