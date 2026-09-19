@@ -1,6 +1,6 @@
 # Contributing
 
-This is Hill Markets' fork of [Documenso](https://github.com/documenso/documenso).
+This is Hill's fork of [Documenso](https://github.com/documenso/documenso).
 It exists to add an instance-wide API and to keep an AGPL-only tree; it is not
 a general-purpose place to develop Documenso.
 
