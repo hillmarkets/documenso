@@ -17,8 +17,8 @@ export const updateOrganisationBrandingLogoRoute = authenticatedProcedure
   .output(ZUpdateOrganisationBrandingLogoResponseSchema)
   .mutation(async ({ ctx, input }) => {
     const { user } = ctx;
-    const { payload, brandingLogo } = input;
-    const { organisationId } = payload;
+    const { payload, brandingLogo, brandingLogoDark } = input;
+    const { organisationId, clearBrandingLogo, clearBrandingLogoDark } = payload;
 
     ctx.logger.info({
       input: {
@@ -42,7 +42,7 @@ export const updateOrganisationBrandingLogoRoute = authenticatedProcedure
 
     // Setting a logo requires the custom-branding entitlement; clearing it is
     // always allowed so a downgraded organisation can still remove its logo.
-    if (brandingLogo && IS_BILLING_ENABLED()) {
+    if ((brandingLogo || brandingLogoDark) && IS_BILLING_ENABLED()) {
       const claim = await getOrganisationClaim({ organisationId });
 
       if (claim.flags?.allowCustomBranding !== true) {
@@ -52,7 +52,23 @@ export const updateOrganisationBrandingLogoRoute = authenticatedProcedure
       }
     }
 
-    const brandingLogoValue = brandingLogo ? await buildBrandingLogoData(brandingLogo) : '';
+    const data: { brandingLogo?: string; brandingLogoDark?: string } = {};
+
+    if (brandingLogo) {
+      data.brandingLogo = await buildBrandingLogoData(brandingLogo);
+    } else if (clearBrandingLogo) {
+      data.brandingLogo = '';
+    }
+
+    if (brandingLogoDark) {
+      data.brandingLogoDark = await buildBrandingLogoData(brandingLogoDark);
+    } else if (clearBrandingLogoDark) {
+      data.brandingLogoDark = '';
+    }
+
+    if (Object.keys(data).length === 0) {
+      return;
+    }
 
     await prisma.organisation.update({
       where: {
@@ -60,9 +76,7 @@ export const updateOrganisationBrandingLogoRoute = authenticatedProcedure
       },
       data: {
         organisationGlobalSettings: {
-          update: {
-            brandingLogo: brandingLogoValue,
-          },
+          update: data,
         },
       },
     });
