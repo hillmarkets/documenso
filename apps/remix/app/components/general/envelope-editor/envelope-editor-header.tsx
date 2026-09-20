@@ -17,11 +17,11 @@ import {
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { match } from 'ts-pattern';
-
 import { EnvelopeDistributeDialog } from '~/components/dialogs/envelope-distribute-dialog';
 import { EnvelopeRedistributeDialog } from '~/components/dialogs/envelope-redistribute-dialog';
 import { TemplateUseDialog } from '~/components/dialogs/template-use-dialog';
 import { BrandingLogo } from '~/components/general/branding-logo';
+import { BrandingLogoImage } from '~/components/general/branding-logo-image';
 import { DocumentAttachmentsPopover } from '~/components/general/document/document-attachments-popover';
 import { EmbeddedEditorAttachmentPopover } from '~/components/general/document/embedded-editor-attachment-popover';
 import { EnvelopeEditorSettingsDialog } from '~/components/general/envelope-editor/envelope-editor-settings-dialog';
@@ -72,7 +72,7 @@ export default function EnvelopeEditorHeader() {
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 flex-1 items-center space-x-4">
           {editorConfig.embedded?.customBrandingLogo ? (
-            <img src={`/api/branding/logo/team/${envelope.teamId}`} alt="Logo" className="h-6 w-auto" />
+            <BrandingLogoImage scope="team" id={envelope.teamId} alt="Logo" className="h-6 w-auto" />
           ) : (
             <Link to="/">
               <BrandingLogo className="h-6 w-auto" />

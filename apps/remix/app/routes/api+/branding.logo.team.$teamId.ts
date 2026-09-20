@@ -1,3 +1,4 @@
+import { resolveBrandingLogo } from '@documenso/lib/server-only/branding/resolve-branding-logo';
 import { getTeamSettings } from '@documenso/lib/server-only/team/get-team-settings';
 import { sha256 } from '@documenso/lib/universal/crypto';
 import { getFileServerSide } from '@documenso/lib/universal/upload/get-file.server';
@@ -24,7 +25,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     teamId,
   });
 
-  if (!settings || !settings.brandingLogo) {
+  const variant = new URL(request.url).searchParams.get('variant');
+  const brandingLogo = settings ? resolveBrandingLogo(settings, variant) : '';
+
+  if (!settings || !brandingLogo) {
     return Response.json(
       {
         status: 'error',
@@ -44,7 +48,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     );
   }
 
-  const etag = `"${Buffer.from(sha256(settings.brandingLogo)).toString('hex')}"`;
+  // Keyed on the reference actually served, so a dark request that fell back to
+  // the light logo shares the light response's cache entry.
+  const etag = `"${Buffer.from(sha256(brandingLogo)).toString('hex')}"`;
 
   if (request.headers.get('If-None-Match') === etag) {
     return new Response(null, {
@@ -56,7 +62,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     });
   }
 
-  const file = await getFileServerSide(JSON.parse(settings.brandingLogo)).catch((e) => {
+  const file = await getFileServerSide(JSON.parse(brandingLogo)).catch((e) => {
     console.error(e);
   });
 

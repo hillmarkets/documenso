@@ -1005,6 +1005,7 @@ model OrganisationGlobalSettings {
 
   brandingEnabled        Boolean @default(false)
   brandingLogo           String  @default("")
+  brandingLogoDark       String  @default("")
   brandingUrl            String  @default("")
   brandingCompanyDetails String  @default("")
   brandingColors         Json? /// [TCssVarsSchema] @zod.custom.use(ZCssVarsSchema)
@@ -1048,6 +1049,7 @@ model TeamGlobalSettings {
 
   brandingEnabled        Boolean?
   brandingLogo           String?
+  brandingLogoDark       String?
   brandingUrl            String?
   brandingCompanyDetails String?
   brandingColors         Json? /// [TCssVarsSchema] @zod.custom.use(ZCssVarsSchema)

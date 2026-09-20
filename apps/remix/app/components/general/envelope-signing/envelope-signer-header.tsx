@@ -17,6 +17,7 @@ import { match } from 'ts-pattern';
 import { EnvelopeDownloadDialog } from '~/components/dialogs/envelope-download-dialog';
 import { useEmbedSigningContext } from '~/components/embed/embed-signing-context';
 import { BrandingLogo } from '~/components/general/branding-logo';
+import { BrandingLogoImage } from '~/components/general/branding-logo-image';
 
 import { BrandingLogoIcon } from '../branding-logo-icon';
 import { DocumentSigningRejectDialog } from '../document-signing/document-signing-reject-dialog';
@@ -35,8 +36,9 @@ export const EnvelopeSignerHeader = () => {
       <div className="flex min-w-0 flex-1 items-center space-x-2 md:w-auto md:flex-none">
         {!isEmbedSigning &&
           (hasCustomBrandingLogo ? (
-            <img
-              src={`/api/branding/logo/team/${envelope.teamId}`}
+            <BrandingLogoImage
+              scope="team"
+              id={envelope.teamId}
               alt={`${envelope.team.name}'s Logo`}
               className="h-6 w-auto flex-shrink-0"
             />

@@ -1,5 +1,6 @@
 import { useCurrentOrganisation } from '@documenso/lib/client-only/providers/organisation';
 import { IS_BILLING_ENABLED, IS_DOCUMENSO_CLOUD } from '@documenso/lib/constants/app';
+import { buildBrandingLogoFormData } from '@documenso/lib/utils/branding-logo-form-data';
 import { canExecuteOrganisationAction } from '@documenso/lib/utils/organisations';
 import type { SanitizeBrandingCssWarning } from '@documenso/lib/utils/sanitize-branding-css';
 import { trpc } from '@documenso/trpc/react';
@@ -48,19 +49,24 @@ export default function OrganisationSettingsBrandingPage() {
 
   const onBrandingPreferencesFormSubmit = async (data: TBrandingPreferencesFormSchema) => {
     try {
-      const { brandingEnabled, brandingLogo, brandingUrl, brandingCompanyDetails, brandingColors, brandingCss } = data;
+      const {
+        brandingEnabled,
+        brandingLogo,
+        brandingLogoDark,
+        brandingUrl,
+        brandingCompanyDetails,
+        brandingColors,
+        brandingCss,
+      } = data;
 
-      // Upload (or clear) the logo through the dedicated, server-validated route.
-      if (brandingLogo instanceof File || brandingLogo === null) {
-        const formData = new FormData();
+      // Upload (or clear) either logo through the dedicated, server-validated route.
+      const logoFormData = buildBrandingLogoFormData(
+        { organisationId: organisation.id },
+        { brandingLogo, brandingLogoDark },
+      );
 
-        formData.append('payload', JSON.stringify({ organisationId: organisation.id }));
-
-        if (brandingLogo instanceof File) {
-          formData.append('brandingLogo', brandingLogo);
-        }
-
-        await updateOrganisationBrandingLogo(formData);
+      if (logoFormData) {
+        await updateOrganisationBrandingLogo(logoFormData);
       }
 
       const result = await updateOrganisationSettings({

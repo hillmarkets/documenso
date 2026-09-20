@@ -177,3 +177,38 @@ test('[SIGNING_BRANDING]: custom logo renders when branding is enabled and is hi
   await expect(page.getByRole('img', { name: `${team.name}'s Logo` })).toHaveCount(0);
   await expect(page.locator('a[href="/"]').first()).toBeVisible();
 });
+
+test('[SIGNING_BRANDING]: V1 signing shows the dark logo when the viewer prefers dark', async ({ page }) => {
+  const { user, team, organisation } = await seedUser();
+
+  await enableOrganisationBranding({
+    organisationGlobalSettingsId: organisation.organisationGlobalSettingsId,
+  });
+
+  await prisma.organisationGlobalSettings.update({
+    where: { id: organisation.organisationGlobalSettingsId },
+    data: { brandingLogoDark: await readBrandingLogo() },
+  });
+
+  const { recipients } = await seedPendingDocumentWithFullFields({
+    owner: user,
+    teamId: team.id,
+    recipients: ['v1-dark-branding-signer@test.documenso.com'],
+    fields: [FieldType.SIGNATURE],
+  });
+
+  // No theme cookie for a fresh recipient, so remix-themes follows the system preference.
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.goto(`/sign/${recipients[0].token}`);
+
+  const logos = page.getByRole('img', { name: `${team.name}'s Logo`, includeHidden: true });
+
+  // Both variants are in the DOM; only the dark one is visible under the dark theme.
+  await expect(logos).toHaveCount(2);
+  await expect(logos.filter({ visible: true })).toHaveAttribute('src', /variant=dark/);
+
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.reload();
+
+  await expect(logos.filter({ visible: true })).not.toHaveAttribute('src', /variant=dark/);
+});
