@@ -223,3 +223,73 @@ test('[BRANDING_LOGO]: rejects setting a logo without the custom-branding entitl
 
   expect(settings.brandingLogo).toBeFalsy();
 });
+
+/** Fetch a served logo's bytes through the browser context so cookies/theme don't matter. */
+const fetchLogo = async (page: Page, url: string) => {
+  const response = await page.context().request.get(url);
+
+  return { status: response.status(), body: await response.body() };
+};
+
+test('[BRANDING_LOGO]: dark logo is served for ?variant=dark and falls back when cleared', async ({ page }) => {
+  const { user, organisation } = await seedUser({ isPersonalOrganisation: false });
+
+  await grantCustomBranding(organisation.organisationClaim.id);
+
+  await apiSignin({
+    page,
+    email: user.email,
+    redirectPath: `/o/${organisation.url}/settings/branding`,
+  });
+
+  // Light logo first, through the UI.
+  await enableBrandingAndUpload(page);
+
+  const logoUrl = `${NEXT_PUBLIC_WEBAPP_URL()}/api/branding/logo/organisation/${organisation.id}`;
+
+  const lightBefore = await fetchLogo(page, logoUrl);
+  const darkBefore = await fetchLogo(page, `${logoUrl}?variant=dark`);
+
+  expect(lightBefore.status).toBe(200);
+  expect(darkBefore.status).toBe(200);
+  // No dark logo yet: the dark variant is the light bytes.
+  expect(darkBefore.body.equals(lightBefore.body)).toBe(true);
+
+  // Upload the dark logo via the dark tile.
+  await page.getByTestId('branding-logo-dark').locator('input[type="file"]').setInputFiles(LOGO_PATH);
+  await page.getByRole('button', { name: 'Save changes' }).first().click();
+  await expect(page.getByText('Your branding preferences have been updated').first()).toBeVisible();
+
+  const settings = await prisma.organisationGlobalSettings.findUniqueOrThrow({
+    where: { id: organisation.organisationGlobalSettingsId },
+  });
+
+  expect(settings.brandingLogoDark).toBeTruthy();
+  // The light logo was not touched by a dark-only save.
+  expect(settings.brandingLogo).toBeTruthy();
+
+  const darkAfter = await fetchLogo(page, `${logoUrl}?variant=dark`);
+  expect(darkAfter.status).toBe(200);
+
+  // Clear only the dark logo; the light one must survive and the dark variant falls back.
+  await page.getByTestId('branding-logo-dark').getByRole('button', { name: 'Remove' }).click();
+  await page.getByRole('button', { name: 'Save changes' }).first().click();
+
+  await expect
+    .poll(async () => {
+      const updated = await prisma.organisationGlobalSettings.findUniqueOrThrow({
+        where: { id: organisation.organisationGlobalSettingsId },
+      });
+
+      return updated.brandingLogoDark;
+    })
+    .toBe('');
+
+  const cleared = await prisma.organisationGlobalSettings.findUniqueOrThrow({
+    where: { id: organisation.organisationGlobalSettingsId },
+  });
+  expect(cleared.brandingLogo).toBe(settings.brandingLogo);
+
+  const darkFallback = await fetchLogo(page, `${logoUrl}?variant=dark`);
+  expect(darkFallback.body.equals(lightBefore.body)).toBe(true);
+});
