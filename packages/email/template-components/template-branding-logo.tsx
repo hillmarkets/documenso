@@ -26,7 +26,14 @@ export const TemplateBrandingLogo = ({ assetBaseUrl, className = 'mb-4 h-6' }: T
     return <Img src={documensoLogoUrl} alt="Documenso Logo" className={className} />;
   }
 
-  const brandingLogo = <Img src={branding.brandingLogo} alt="Branding Logo" className={className} />;
+  // Mail clients apply their own dark-mode transforms and we cannot detect them
+  // server-side, so the custom logo sits on a fixed white plate. Inline styles
+  // because email clients ignore stylesheets.
+  const brandingLogo = (
+    <span style={{ display: 'inline-block', backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '6px' }}>
+      <Img src={branding.brandingLogo} alt="Branding Logo" className={className} />
+    </span>
+  );
 
   const safeBrandingUrl = getSafeBrandingUrl(branding.brandingUrl);
 
