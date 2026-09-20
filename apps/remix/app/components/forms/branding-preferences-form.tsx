@@ -8,9 +8,7 @@ import {
 import { DEFAULT_BRAND_COLORS, DEFAULT_BRAND_RADIUS } from '@documenso/lib/constants/theme';
 import { ZCssVarsSchema } from '@documenso/lib/types/css-vars';
 import { normalizeBrandingColors } from '@documenso/lib/utils/normalize-branding-colors';
-import { cn } from '@documenso/ui/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@documenso/ui/primitives/accordion';
-import { Button } from '@documenso/ui/primitives/button';
 import { ColorPicker } from '@documenso/ui/primitives/color-picker';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@documenso/ui/primitives/form/form';
 import { Input } from '@documenso/ui/primitives/input';
@@ -19,7 +17,6 @@ import { Textarea } from '@documenso/ui/primitives/textarea';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trans, useLingui } from '@lingui/react/macro';
 import type { TeamGlobalSettings } from '@prisma/client';
-import { Loader } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -28,19 +25,22 @@ import { BrandingPreferencesResetDialog } from '~/components/dialogs/branding-pr
 import { useOptionalCurrentTeam } from '~/providers/team';
 import { useCspNonce } from '~/utils/nonce';
 
+import { BrandingLogoField } from './branding-logo-field';
 import { FormStickySaveBar } from './form-sticky-save-bar';
 import { InheritableField } from './inheritable-field';
 
+const ZBrandingLogoFileSchema = z
+  .instanceof(File)
+  .refine(
+    (file) => file.size <= BRANDING_LOGO_MAX_SIZE_BYTES,
+    `File size must be less than ${BRANDING_LOGO_MAX_SIZE_MB}MB`,
+  )
+  .refine((file) => BRANDING_LOGO_ALLOWED_TYPES.includes(file.type), 'Only .jpg, .png, and .webp files are accepted');
+
 const ZBrandingPreferencesFormSchema = z.object({
   brandingEnabled: z.boolean().nullable(),
-  brandingLogo: z
-    .instanceof(File)
-    .refine(
-      (file) => file.size <= BRANDING_LOGO_MAX_SIZE_BYTES,
-      `File size must be less than ${BRANDING_LOGO_MAX_SIZE_MB}MB`,
-    )
-    .refine((file) => BRANDING_LOGO_ALLOWED_TYPES.includes(file.type), 'Only .jpg, .png, and .webp files are accepted')
-    .nullish(),
+  brandingLogo: ZBrandingLogoFileSchema.nullish(),
+  brandingLogoDark: ZBrandingLogoFileSchema.nullish(),
   brandingUrl: z.string().url().optional().or(z.literal('')),
   brandingCompanyDetails: z.string().max(500).optional(),
   brandingColors: ZCssVarsSchema.default({}),
@@ -51,7 +51,13 @@ export type TBrandingPreferencesFormSchema = z.infer<typeof ZBrandingPreferences
 
 type SettingsSubset = Pick<
   TeamGlobalSettings,
-  'brandingEnabled' | 'brandingLogo' | 'brandingUrl' | 'brandingCompanyDetails' | 'brandingColors' | 'brandingCss'
+  | 'brandingEnabled'
+  | 'brandingLogo'
+  | 'brandingLogoDark'
+  | 'brandingUrl'
+  | 'brandingCompanyDetails'
+  | 'brandingColors'
+  | 'brandingCss'
 >;
 
 export type BrandingPreferencesFormProps = {
@@ -76,6 +82,7 @@ export function BrandingPreferencesForm({
   const organisation = useCurrentOrganisation();
 
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [darkPreviewUrl, setDarkPreviewUrl] = useState<string>('');
   const [hasLoadedPreview, setHasLoadedPreview] = useState(false);
   const [colorPickerKey, setColorPickerKey] = useState(0);
 
@@ -88,6 +95,7 @@ export function BrandingPreferencesForm({
     brandingEnabled: settings.brandingEnabled ?? null,
     brandingUrl: settings.brandingUrl ?? '',
     brandingLogo: undefined,
+    brandingLogoDark: undefined,
     brandingCompanyDetails: settings.brandingCompanyDetails ?? '',
     brandingColors: initialColors,
     brandingCss: settings.brandingCss ?? '',
@@ -110,6 +118,7 @@ export function BrandingPreferencesForm({
   const isResetToDefaultsVisible =
     settings.brandingEnabled !== (canInherit ? null : false) ||
     !!settings.brandingLogo ||
+    !!settings.brandingLogoDark ||
     !!settings.brandingUrl ||
     !!settings.brandingCompanyDetails ||
     !!settings.brandingCss ||
@@ -119,6 +128,7 @@ export function BrandingPreferencesForm({
     const data: TBrandingPreferencesFormSchema = {
       brandingEnabled: canInherit ? null : false,
       brandingLogo: null,
+      brandingLogoDark: null,
       brandingUrl: '',
       brandingCompanyDetails: '',
       brandingColors: {},
@@ -131,17 +141,24 @@ export function BrandingPreferencesForm({
       URL.revokeObjectURL(previewUrl);
     }
 
+    if (darkPreviewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(darkPreviewUrl);
+    }
+
     setPreviewUrl('');
+    setDarkPreviewUrl('');
     setColorPickerKey((key) => key + 1);
     form.reset(data);
   };
 
-  const getSavedLogoPreviewUrl = () => {
-    if (!settings.brandingLogo) {
+  const getSavedLogoPreviewUrl = (variant: 'light' | 'dark') => {
+    const stored = variant === 'dark' ? settings.brandingLogoDark : settings.brandingLogo;
+
+    if (!stored) {
       return '';
     }
 
-    const file = JSON.parse(settings.brandingLogo);
+    const file = JSON.parse(stored);
 
     if (!('type' in file) || !('data' in file)) {
       return '';
@@ -152,24 +169,32 @@ export function BrandingPreferencesForm({
         ? `${NEXT_PUBLIC_WEBAPP_URL()}/api/branding/logo/team/${team?.id}`
         : `${NEXT_PUBLIC_WEBAPP_URL()}/api/branding/logo/organisation/${organisation?.id}`;
 
-    return `${logoUrl}?v=${Date.now()}`;
+    const query = variant === 'dark' ? `?variant=dark&v=${Date.now()}` : `?v=${Date.now()}`;
+
+    return `${logoUrl}${query}`;
   };
 
   useEffect(() => {
-    const savedLogoPreviewUrl = getSavedLogoPreviewUrl();
+    const savedLogoPreviewUrl = getSavedLogoPreviewUrl('light');
+    const savedDarkLogoPreviewUrl = getSavedLogoPreviewUrl('dark');
 
     if (savedLogoPreviewUrl) {
       setPreviewUrl(savedLogoPreviewUrl);
     }
 
+    if (savedDarkLogoPreviewUrl) {
+      setDarkPreviewUrl(savedDarkLogoPreviewUrl);
+    }
+
     setHasLoadedPreview(true);
-  }, [settings.brandingLogo]);
+  }, [settings.brandingLogo, settings.brandingLogoDark]);
 
   // Reset the form to the saved values. The form is driven by the `values` prop (no
   // `defaultValues`), so `reset()` with no argument doesn't re-baseline the dirty check;
   // passing the saved values clears the per-field dirty tracking (dirtyFields).
   const handleReset = () => {
-    setPreviewUrl(getSavedLogoPreviewUrl());
+    setPreviewUrl(getSavedLogoPreviewUrl('light'));
+    setDarkPreviewUrl(getSavedLogoPreviewUrl('dark'));
     form.reset(savedValues);
   };
 
@@ -194,7 +219,7 @@ export function BrandingPreferencesForm({
     form.reset(form.getValues());
   });
 
-  // Cleanup ObjectURL on unmount or when previewUrl changes
+  // Cleanup ObjectURLs on unmount or when a preview changes
   useEffect(() => {
     return () => {
       if (previewUrl.startsWith('blob:')) {
@@ -202,6 +227,29 @@ export function BrandingPreferencesForm({
       }
     };
   }, [previewUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (darkPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(darkPreviewUrl);
+      }
+    };
+  }, [darkPreviewUrl]);
+
+  // Swap a tile's preview for a newly picked file (or clear it) and push the change into the form.
+  const swapPreview = (
+    current: string,
+    setter: (url: string) => void,
+    onChange: (file: File | null) => void,
+    file: File | null,
+  ) => {
+    if (current.startsWith('blob:')) {
+      URL.revokeObjectURL(current);
+    }
+
+    setter(file ? URL.createObjectURL(file) : '');
+    onChange(file);
+  };
 
   return (
     <Form {...form}>
@@ -262,97 +310,69 @@ export function BrandingPreferencesForm({
           <div className="relative flex w-full flex-col gap-y-4">
             {!isBrandingEnabled && <div className="absolute inset-0 z-30 bg-background/60" />}
 
-            <FormField
-              control={form.control}
-              name="brandingLogo"
-              render={({ field: { value: _value, onChange, ...field } }) => (
-                <InheritableField
-                  className="flex-1"
-                  canInherit={canInherit}
-                  isInherited={!previewUrl}
-                  label={<Trans>Branding Logo</Trans>}
-                  testId="branding-logo"
-                >
-                  <div className="flex flex-col gap-4">
-                    <div className="relative h-48 w-full overflow-hidden rounded-lg border border-border bg-background">
-                      {previewUrl ? (
-                        <img src={previewUrl} alt="Logo preview" className="h-full w-full object-contain p-4" />
-                      ) : (
-                        <div className="relative flex h-full w-full items-center justify-center bg-muted/20 text-muted-foreground text-sm dark:bg-muted">
-                          <Trans>Please upload a logo</Trans>
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="brandingLogo"
+                render={({ field: { value: _value, onChange, ...field } }) => (
+                  <BrandingLogoField
+                    label={<Trans>Branding Logo</Trans>}
+                    testId="branding-logo"
+                    canInherit={canInherit}
+                    isEnabled={!!isBrandingEnabled}
+                    previewUrl={previewUrl}
+                    hasLoadedPreview={hasLoadedPreview}
+                    onFileChange={(file) => swapPreview(previewUrl, setPreviewUrl, onChange, file)}
+                    inputProps={field}
+                    description={
+                      <>
+                        <Trans>Upload your brand logo (max 5MB, JPG, PNG, or WebP)</Trans>
 
-                          {!hasLoadedPreview && (
-                            <div className="absolute inset-0 z-[999] flex items-center justify-center bg-muted dark:bg-muted">
-                              <Loader className="h-8 w-8 animate-spin text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                        {canInherit && (
+                          <span>
+                            {'. '}
+                            <Trans>Leave blank to inherit from the organisation.</Trans>
+                          </span>
+                        )}
+                      </>
+                    }
+                  />
+                )}
+              />
 
-                    <div className="relative">
-                      <FormControl className="relative">
-                        <Input
-                          type="file"
-                          accept={BRANDING_LOGO_ALLOWED_TYPES.join(',')}
-                          disabled={!isBrandingEnabled}
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
+              <FormField
+                control={form.control}
+                name="brandingLogoDark"
+                render={({ field: { value: _value, onChange, ...field } }) => (
+                  <BrandingLogoField
+                    label={<Trans>Dark Mode Logo</Trans>}
+                    testId="branding-logo-dark"
+                    canInherit={canInherit}
+                    isEnabled={!!isBrandingEnabled}
+                    isDarkSurface
+                    previewUrl={darkPreviewUrl}
+                    hasLoadedPreview={hasLoadedPreview}
+                    onFileChange={(file) => swapPreview(darkPreviewUrl, setDarkPreviewUrl, onChange, file)}
+                    inputProps={field}
+                    description={
+                      <>
+                        <Trans>
+                          Optional. Shown instead of the logo when the viewer's theme is dark. Leave empty to reuse the
+                          logo.
+                        </Trans>
 
-                            if (file) {
-                              if (previewUrl.startsWith('blob:')) {
-                                URL.revokeObjectURL(previewUrl);
-                              }
-
-                              const objectUrl = URL.createObjectURL(file);
-
-                              setPreviewUrl(objectUrl);
-
-                              onChange(file);
-                            }
-                          }}
-                          className={cn(
-                            'h-auto p-2',
-                            'file:text-primary hover:file:bg-primary/90',
-                            'file:mr-4 file:cursor-pointer file:rounded-md file:border-0',
-                            'file:p-2 file:py-2 file:font-medium',
-                            'file:bg-primary file:text-primary-foreground',
-                            !isBrandingEnabled && 'cursor-not-allowed',
-                          )}
-                          {...field}
-                        />
-                      </FormControl>
-
-                      <div className="absolute top-0 right-2 inline-flex h-full items-center justify-center">
-                        <Button
-                          type="button"
-                          variant="link"
-                          size="sm"
-                          className="text-destructive text-xs"
-                          onClick={() => {
-                            setPreviewUrl('');
-                            onChange(null);
-                          }}
-                        >
-                          <Trans>Remove</Trans>
-                        </Button>
-                      </div>
-                    </div>
-
-                    <FormDescription>
-                      <Trans>Upload your brand logo (max 5MB, JPG, PNG, or WebP)</Trans>
-
-                      {canInherit && (
-                        <span>
-                          {'. '}
-                          <Trans>Leave blank to inherit from the organisation.</Trans>
-                        </span>
-                      )}
-                    </FormDescription>
-                  </div>
-                </InheritableField>
-              )}
-            />
+                        {canInherit && (
+                          <span>
+                            {' '}
+                            <Trans>Leave blank to inherit from the organisation.</Trans>
+                          </span>
+                        )}
+                      </>
+                    }
+                  />
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
