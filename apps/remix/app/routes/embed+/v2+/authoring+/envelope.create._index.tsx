@@ -12,6 +12,7 @@ import {
 } from '@documenso/lib/types/envelope-editor';
 import type { TEnvelopeFieldAndMeta } from '@documenso/lib/types/field-meta';
 import { fireAndForget } from '@documenso/lib/universal/fire-and-forget';
+import { getBrandingLogoDimensions } from '@documenso/lib/utils/branding-logo-size';
 import { extractDerivedDocumentMeta } from '@documenso/lib/utils/document';
 import { buildEmbeddedEditorOptions, buildEmbeddedFeatures } from '@documenso/lib/utils/embed-config';
 import { prisma } from '@documenso/prisma';
@@ -309,6 +310,7 @@ const EnvelopeCreatePage = ({ embedAuthoringOptions }: EnvelopeCreatePageProps) 
       mode: 'create' as const,
       onCreate: async (envelope: Omit<TEditorEnvelope, 'id'>) => createEmbeddedEnvelope(envelope),
       customBrandingLogo: Boolean(teamSettings.brandingEnabled && teamSettings.brandingLogo),
+      customBrandingLogoDimensions: getBrandingLogoDimensions(teamSettings.brandingLogo),
       user: embedAuthoringOptions.user,
     }),
     [token],

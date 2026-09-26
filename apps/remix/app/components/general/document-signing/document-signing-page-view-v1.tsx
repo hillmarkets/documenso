@@ -12,6 +12,7 @@ import {
 } from '@documenso/lib/types/field-meta';
 import type { CompletedField } from '@documenso/lib/types/fields';
 import { isFieldUnsignedAndRequired } from '@documenso/lib/utils/advanced-fields-helpers';
+import { getBrandingLogoDimensions } from '@documenso/lib/utils/branding-logo-size';
 import { getDocumentDataUrlForPdfViewer } from '@documenso/lib/utils/envelope-download';
 import { validateFieldsInserted } from '@documenso/lib/utils/fields';
 import type { FieldWithSignatureAndFieldMeta } from '@documenso/prisma/types/field-with-signature-and-fieldmeta';
@@ -175,7 +176,9 @@ export const DocumentSigningPageViewV1 = ({
             scope="team"
             id={document.teamId}
             alt={`${document.team.name}'s Logo`}
-            className="mb-4 h-12 w-12 md:mb-2"
+            surface="signing-page"
+            dimensions={getBrandingLogoDimensions(branding.brandingLogo)}
+            className="mb-4 md:mb-2"
           />
         )}
         <h1

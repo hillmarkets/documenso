@@ -11,6 +11,7 @@ import {
   ZEmbedEditEnvelopeAuthoringSchema,
 } from '@documenso/lib/types/envelope-editor';
 import type { TEnvelopeFieldAndMeta } from '@documenso/lib/types/field-meta';
+import { getBrandingLogoDimensions } from '@documenso/lib/utils/branding-logo-size';
 import { buildEmbeddedEditorOptions, PRESIGNED_ENVELOPE_ITEM_ID_PREFIX } from '@documenso/lib/utils/embed-config';
 import { prisma } from '@documenso/prisma';
 import { trpc } from '@documenso/trpc/react';
@@ -312,6 +313,7 @@ const EnvelopeEditPage = ({ embedAuthoringOptions }: EnvelopeEditPageProps) => {
       mode: 'edit' as const,
       onUpdate: async (envelope: TEditorEnvelope) => updateEmbeddedEnvelope(envelope),
       customBrandingLogo: Boolean(brandingLogo),
+      customBrandingLogoDimensions: getBrandingLogoDimensions(brandingLogo),
       user: embedAuthoringOptions.user,
     }),
     [token, brandingLogo, embedAuthoringOptions.user],

@@ -1,3 +1,4 @@
+import type { BrandingLogoDimensions } from '@documenso/lib/utils/branding-logo-size';
 import type { EmailBrandingColors } from '@documenso/lib/utils/email-branding-colors';
 import { createContext, useContext } from 'react';
 
@@ -5,6 +6,8 @@ type BrandingContextValue = {
   brandingEnabled: boolean;
   brandingUrl: string;
   brandingLogo: string;
+  /** Pixel size of the stored logo, when it was recorded. Drives `getBrandingLogoBox`. */
+  brandingLogoDimensions?: BrandingLogoDimensions | null;
   brandingCompanyDetails: string;
   brandingHidePoweredBy: boolean;
   brandingColors?: EmailBrandingColors;
