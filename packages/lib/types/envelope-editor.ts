@@ -9,6 +9,7 @@ import { TeamSchema } from '@documenso/prisma/generated/zod/modelSchema/TeamSche
 import { TemplateDirectLinkSchema } from '@documenso/prisma/generated/zod/modelSchema/TemplateDirectLinkSchema';
 import { EnvelopeType } from '@prisma/client';
 import { z } from 'zod';
+import type { BrandingLogoDimensions } from '../utils/branding-logo-size';
 
 /**
  * DO NOT MAKE ANY BREAKING BACKWARD CHANGES HERE UNLESS YOU'RE SURE
@@ -334,6 +335,8 @@ export type EnvelopeEditorConfig = TEnvelopeEditorSettings & {
     onCreate?: (envelope: Omit<TEditorEnvelope, 'id'>) => void;
     onUpdate?: (envelope: TEditorEnvelope) => void;
     customBrandingLogo?: boolean;
+    /** The custom logo's pixel size, so the header can size it by its shape. */
+    customBrandingLogoDimensions?: BrandingLogoDimensions | null;
     user?: {
       email?: string;
       name?: string;

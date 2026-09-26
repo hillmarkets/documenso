@@ -1,3 +1,4 @@
+import { getBrandingLogoDimensions } from '@documenso/lib/utils/branding-logo-size';
 import { mapSecondaryIdToDocumentId } from '@documenso/lib/utils/envelope';
 import { Badge } from '@documenso/ui/primitives/badge';
 import { Button } from '@documenso/ui/primitives/button';
@@ -40,7 +41,8 @@ export const EnvelopeSignerHeader = () => {
               scope="team"
               id={envelope.teamId}
               alt={`${envelope.team.name}'s Logo`}
-              className="h-6 w-auto flex-shrink-0"
+              surface="signer-header"
+              dimensions={getBrandingLogoDimensions(envelopeData.settings.brandingLogo)}
             />
           ) : (
             <Link to="/" className="flex-shrink-0">

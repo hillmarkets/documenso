@@ -10,6 +10,12 @@ type RenderRequestBody = {
   lang?: string;
   colors?: Record<string, string> | null;
   assetBaseUrl: string;
+  /** A custom branding logo, to check how a given logo shape renders. */
+  logo?: {
+    url: string;
+    width?: number;
+    height?: number;
+  } | null;
 };
 
 /**
@@ -37,18 +43,22 @@ export const action = async ({ request }: Route.ActionArgs) => {
   const Component = template.component;
   const element = <Component {...body.props} assetBaseUrl={body.assetBaseUrl} />;
 
+  const logo = body.logo?.url ? body.logo : null;
+
   const html = await renderEmailWithI18N(element, {
     lang: body.lang ?? 'en',
-    branding: brandingColors
-      ? {
-          brandingEnabled: true,
-          brandingUrl: '',
-          brandingLogo: '',
-          brandingCompanyDetails: '',
-          brandingHidePoweredBy: false,
-          brandingColors,
-        }
-      : undefined,
+    branding:
+      brandingColors || logo
+        ? {
+            brandingEnabled: true,
+            brandingUrl: '',
+            brandingLogo: logo?.url ?? '',
+            brandingLogoDimensions: logo?.width && logo.height ? { width: logo.width, height: logo.height } : null,
+            brandingCompanyDetails: '',
+            brandingHidePoweredBy: false,
+            brandingColors: brandingColors ?? undefined,
+          }
+        : undefined,
   });
 
   return new Response(html, {

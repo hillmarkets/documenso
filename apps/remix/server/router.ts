@@ -1,6 +1,7 @@
 import { tsRestHonoApp } from '@documenso/api/hono';
 import { auth } from '@documenso/auth/server';
 import { jobsClient } from '@documenso/lib/jobs/client';
+import { migrateBrandingLogoDimensions } from '@documenso/lib/server-only/branding/migrate-branding-logo-dimensions';
 import { LicenseClient } from '@documenso/lib/server-only/license/license-client';
 import { createRateLimitMiddleware } from '@documenso/lib/server-only/rate-limit/rate-limit-middleware';
 import {
@@ -112,7 +113,6 @@ app.route('/api/files', filesRoute);
 app.use('/api/ai/*', aiRateLimitMiddleware);
 app.route('/api/ai', aiRoute);
 
-
 // API servers.
 app.route('/api/v1', tsRestHonoApp);
 app.use('/api/jobs/*', jobsClient.getApiHandler());
@@ -155,5 +155,6 @@ jobsClient.startCron();
 
 void migrateDeletedAccountServiceAccount();
 void migrateLegacyServiceAccount();
+void migrateBrandingLogoDimensions().catch((err) => console.error('Branding logo dimension migration failed', err));
 
 export default app;
