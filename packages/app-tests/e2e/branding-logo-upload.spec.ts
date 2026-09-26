@@ -259,13 +259,22 @@ test('[BRANDING_LOGO]: dark logo is served for ?variant=dark and falls back when
   // Upload the dark logo via the dark tile.
   await page.getByTestId('branding-logo-dark').locator('input[type="file"]').setInputFiles(LOGO_PATH);
   await page.getByRole('button', { name: 'Save changes' }).first().click();
-  await expect(page.getByText('Your branding preferences have been updated').first()).toBeVisible();
+
+  // Wait on the stored value, not the toast: the first save's toast is still on
+  // screen, so waiting for it returns before this save has landed.
+  await expect
+    .poll(async () => {
+      const updated = await prisma.organisationGlobalSettings.findUniqueOrThrow({
+        where: { id: organisation.organisationGlobalSettingsId },
+      });
+
+      return updated.brandingLogoDark;
+    })
+    .toBeTruthy();
 
   const settings = await prisma.organisationGlobalSettings.findUniqueOrThrow({
     where: { id: organisation.organisationGlobalSettingsId },
   });
-
-  expect(settings.brandingLogoDark).toBeTruthy();
   // The light logo was not touched by a dark-only save.
   expect(settings.brandingLogo).toBeTruthy();
 
