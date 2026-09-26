@@ -81,7 +81,7 @@ export default function EnvelopeEditorHeader() {
             />
           ) : (
             <Link to="/">
-              <BrandingLogo className="h-6 w-auto" />
+              <BrandingLogo className="h-5 w-auto" />
             </Link>
           )}
           <Separator orientation="vertical" className="h-6 shrink-0" />

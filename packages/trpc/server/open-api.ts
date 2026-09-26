@@ -5,9 +5,9 @@ import { appRouter } from './router';
 
 export const openApiDocument = {
   ...generateOpenApiDocument(appRouter, {
-    title: 'Documenso v2 API',
+    title: 'Hill Sign API',
     description: [
-      'Welcome to the Documenso v2 API.',
+      'Welcome to the Hill Sign API.',
       '',
       'This API provides access to our system, which you can use to integrate applications, automate workflows, or build custom tools.',
       '',

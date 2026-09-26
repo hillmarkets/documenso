@@ -213,7 +213,7 @@ test('[BULK_ACTIONS]: can bulk download multiple documents as a zip', async ({ p
 
   const download = await downloadPromise;
 
-  expect(download.suggestedFilename()).toMatch(/^documenso-documents-\d{4}-\d{2}-\d{2}\.zip$/);
+  expect(download.suggestedFilename()).toMatch(/^hill-sign-documents-\d{4}-\d{2}-\d{2}\.zip$/);
 
   const downloadPath = await download.path();
   const zipContents = unzipSync(new Uint8Array(fs.readFileSync(downloadPath)));

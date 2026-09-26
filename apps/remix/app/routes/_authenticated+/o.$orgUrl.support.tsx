@@ -4,9 +4,9 @@ import { IS_BILLING_ENABLED } from '@documenso/lib/constants/app';
 import { Button } from '@documenso/ui/primitives/button';
 import { msg } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
-import { BookIcon, HelpCircleIcon, Link2Icon } from 'lucide-react';
+import { HelpCircleIcon, Link2Icon, MailIcon } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 
 import { SupportTicketForm } from '~/components/forms/support-ticket-form';
 import { appMetaTags } from '~/utils/meta';
@@ -49,44 +49,16 @@ export default function SupportPage() {
         <div className="mt-6 flex flex-col gap-4">
           <div className="rounded-lg border p-4">
             <h2 className="flex items-center gap-2 font-bold text-lg">
-              <BookIcon className="h-5 w-5 text-muted-foreground" />
-              <Link
-                to="https://docs.documenso.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline"
-              >
-                <Trans>Documentation</Trans>
-              </Link>
-            </h2>
-            <p className="mt-1 text-muted-foreground">
-              <Trans>Read our documentation to get started with Documenso.</Trans>
-            </p>
-          </div>
-          <div className="rounded-lg border p-4">
-            <h2 className="flex items-center gap-2 font-bold text-lg">
-              <Link2Icon className="h-5 w-5 text-muted-foreground" />
-              <Link
-                to="https://documen.so/discord"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline"
-              >
-                <Trans>Discord</Trans>
-              </Link>
+              <MailIcon className="h-5 w-5 text-muted-foreground" />
+              <Trans>Email</Trans>
             </h2>
             <p className="mt-1 text-muted-foreground">
               <Trans>
-                Join our community on{' '}
-                <Link
-                  to="https://documen.so/discord"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline"
-                >
-                  Discord
-                </Link>{' '}
-                for community support and discussion.
+                For help with Hill Sign, email{' '}
+                <a href="mailto:support@hill.com" className="hover:underline">
+                  support@hill.com
+                </a>
+                .
               </Trans>
             </p>
           </div>
