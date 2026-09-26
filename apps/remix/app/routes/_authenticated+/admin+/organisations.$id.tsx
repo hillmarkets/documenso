@@ -1,7 +1,5 @@
 import { NEXT_PUBLIC_WEBAPP_URL } from '@documenso/lib/constants/app';
 import { AppError } from '@documenso/lib/errors/app-error';
-import { LicenseClient } from '@documenso/lib/server-only/license/license-client';
-import type { TLicenseClaim } from '@documenso/lib/types/license';
 import { SUBSCRIPTION_CLAIM_FEATURE_FLAGS } from '@documenso/lib/types/subscription';
 import { getHighestOrganisationRoleInGroup } from '@documenso/lib/utils/organisations';
 import { trpc } from '@documenso/trpc/react';
@@ -48,17 +46,7 @@ import { SettingsHeader } from '~/components/general/settings-header';
 
 import type { Route } from './+types/organisations.$id';
 
-export async function loader() {
-  const licenseData = await LicenseClient.getInstance()?.getCachedLicense();
-
-  return {
-    licenseFlags: licenseData?.license?.flags,
-  };
-}
-
-export default function OrganisationGroupSettingsPage({ params, loaderData }: Route.ComponentProps) {
-  const { licenseFlags } = loaderData;
-
+export default function OrganisationGroupSettingsPage({ params }: Route.ComponentProps) {
   const { i18n, t } = useLingui();
   const { toast } = useToast();
 
@@ -289,7 +277,7 @@ export default function OrganisationGroupSettingsPage({ params, loaderData }: Ro
         </Accordion>
       </div>
 
-      <OrganisationAdminForm organisation={organisation} licenseFlags={licenseFlags} />
+      <OrganisationAdminForm organisation={organisation} />
 
       <div className="mt-16 space-y-10">
         <div>
@@ -357,7 +345,6 @@ type TUpdateGenericOrganisationDataFormSchema = z.infer<typeof ZUpdateGenericOrg
 
 type OrganisationAdminFormOptions = {
   organisation: TGetAdminOrganisationResponse;
-  licenseFlags?: TLicenseClaim;
 };
 
 const GenericOrganisationAdminForm = ({ organisation }: OrganisationAdminFormOptions) => {
@@ -461,7 +448,7 @@ const ZUpdateOrganisationBillingFormSchema = ZUpdateAdminOrganisationRequestSche
 
 type TUpdateOrganisationBillingFormSchema = z.infer<typeof ZUpdateOrganisationBillingFormSchema>;
 
-const OrganisationAdminForm = ({ organisation, licenseFlags }: OrganisationAdminFormOptions) => {
+const OrganisationAdminForm = ({ organisation }: OrganisationAdminFormOptions) => {
   const { toast } = useToast();
   const { t } = useLingui();
 
@@ -470,11 +457,6 @@ const OrganisationAdminForm = ({ organisation, licenseFlags }: OrganisationAdmin
   const { data: transportsData } = trpc.admin.emailTransport.find.useQuery({ perPage: 100 });
   const transports = transportsData?.data ?? [];
   const NONE_VALUE = '__none__';
-
-  const hasRestrictedEnterpriseFeatures = Object.values(SUBSCRIPTION_CLAIM_FEATURE_FLAGS).some(
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    (flag) => flag.isEnterprise && !licenseFlags?.[flag.key as keyof TLicenseClaim],
-  );
 
   const form = useForm<TUpdateOrganisationBillingFormSchema>({
     resolver: zodResolver(ZUpdateOrganisationBillingFormSchema),
@@ -722,7 +704,10 @@ const OrganisationAdminForm = ({ organisation, licenseFlags }: OrganisationAdmin
 
           <div className="mt-3 space-y-2 rounded-md border p-4">
             {Object.values(SUBSCRIPTION_CLAIM_FEATURE_FLAGS).map(({ key, label, isEnterprise }) => {
-              const isRestrictedFeature = isEnterprise && !licenseFlags?.[key as keyof TLicenseClaim]; // eslint-disable-line @typescript-eslint/consistent-type-assertions
+              // Upstream sells these as Enterprise features. They can't be switched on until
+              // Hill's counsel decides whether the fork may offer them; switching one
+              // off is always allowed.
+              const isLocked = isEnterprise;
 
               return (
                 <FormField
@@ -737,7 +722,7 @@ const OrganisationAdminForm = ({ organisation, licenseFlags }: OrganisationAdmin
                             id={`flag-${key}`}
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            disabled={isRestrictedFeature && !field.value} // Allow disabling of restricted features.
+                            disabled={isLocked && !field.value}
                           />
 
                           <label
@@ -745,7 +730,6 @@ const OrganisationAdminForm = ({ organisation, licenseFlags }: OrganisationAdmin
                             htmlFor={`flag-${key}`}
                           >
                             {label}
-                            {isRestrictedFeature && ' ¹'}
                           </label>
                         </div>
                       </FormControl>
@@ -755,22 +739,6 @@ const OrganisationAdminForm = ({ organisation, licenseFlags }: OrganisationAdmin
               );
             })}
           </div>
-
-          {hasRestrictedEnterpriseFeatures && (
-            <Alert variant="neutral" className="mt-4">
-              <AlertDescription>
-                <span>¹&nbsp;</span>
-                <Trans>Your current license does not include these features.</Trans>{' '}
-                <Link
-                  to="https://docs.documenso.com/users/licenses/enterprise-edition"
-                  target="_blank"
-                  className="text-foreground underline hover:opacity-80"
-                >
-                  <Trans>Learn more</Trans>
-                </Link>
-              </AlertDescription>
-            </Alert>
-          )}
         </div>
 
         <ClaimLimitFields control={form.control} prefix="claims." />
