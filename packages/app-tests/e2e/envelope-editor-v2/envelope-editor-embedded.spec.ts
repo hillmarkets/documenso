@@ -5,7 +5,7 @@ import { prisma } from '@documenso/prisma';
 import { seedUser } from '@documenso/prisma/seed/users';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-
+import { grantEmbedAuthoring } from '../fixtures/embed-authoring';
 import {
   addEnvelopeItemPdf,
   createEmbeddedEnvelopeCreateHash,
@@ -153,6 +153,8 @@ const openEmbeddedCreateWithUser = async (
   team: { id: number },
   options: { folderId?: string; tokenNamePrefix?: string },
 ): Promise<TEnvelopeEditorSurface> => {
+  await grantEmbedAuthoring(team.id);
+
   const { token } = await createApiToken({
     userId: user.id,
     teamId: team.id,
