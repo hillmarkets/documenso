@@ -134,6 +134,9 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
     <html translate="no" lang={lang} data-theme={theme} className={theme ?? ''} suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
+        {/* The favicon set is hill.com's, byte for byte (hillmarkets/hill apps/marketing-site). */}
+        <link rel="icon" href={`${basePath}/favicon.ico`} sizes="48x48" />
+        <link rel="icon" type="image/svg+xml" href={`${basePath}/favicon.svg`} />
         <link rel="apple-touch-icon" sizes="180x180" href={`${basePath}/apple-touch-icon.png`} />
         <link rel="icon" type="image/png" sizes="32x32" href={`${basePath}/favicon-32x32.png`} />
         <link rel="icon" type="image/png" sizes="16x16" href={`${basePath}/favicon-16x16.png`} />
@@ -158,18 +161,6 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
         <script nonce={nonce(cspNonce)}>0</script>
       </head>
       <body className={isRecipientRoute ? 'documenso-branded' : undefined}>
-        {/* Global license banner currently disabled. Need to wait until after a few releases. */}
-        {/* {licenseStatus === '?' && (
-          <div className="bg-destructive text-destructive-foreground">
-            <div className="mx-auto flex h-auto max-w-screen-xl items-center justify-center px-4 py-3 text-sm font-medium">
-              <div className="flex items-center">
-                <AlertTriangleIcon className="mr-2 h-4 w-4" />
-                <Trans>This is an expired license instance of Documenso</Trans>
-              </div>
-            </div>
-          </div>
-        )} */}
-
         <NuqsAdapter>
           <SessionProvider initialSession={session}>
             <TooltipProvider>

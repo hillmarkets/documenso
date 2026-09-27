@@ -12,7 +12,7 @@ const createWebhookThroughDialog = async (page: import('@playwright/test').Page,
   await page.getByLabel('Triggers').click();
   await page.waitForTimeout(200);
   await page.getByText('document.created').click();
-  await page.getByText('The URL for Documenso to send webhook events to.').click();
+  await page.getByText('The URL for Hill Sign to send webhook events to.').click();
   await page.getByRole('button', { name: 'Create' }).click();
   await expectTextToBeVisible(page, 'Webhook created');
   await expect(page.getByText(webhookUrl)).toBeVisible();

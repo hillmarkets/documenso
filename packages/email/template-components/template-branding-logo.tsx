@@ -11,8 +11,8 @@ export type TemplateBrandingLogoProps = {
   className?: string;
 };
 
-/** `static/logo.png` is 374×55; this is it at the 24px it has always rendered at. */
-const DOCUMENSO_LOGO_BOX = { width: 163, height: 24 };
+/** `static/logo.png` is the Hill wordmark, rendered at 354×120 from hill.com's brand SVG. */
+const HILL_LOGO_BOX = getBrandingLogoBox('email', { width: 354, height: 120 });
 
 /**
  * Renders the email logo.
@@ -20,7 +20,7 @@ const DOCUMENSO_LOGO_BOX = { width: 163, height: 24 };
  * - When custom branding is enabled with a logo, the branding logo is shown,
  *   sized by its shape through `getBrandingLogoBox('email', …)`.
  *   If a safe (http/https) Brand Website is configured, the logo links to it.
- * - Otherwise the Documenso logo is shown.
+ * - Otherwise the Hill wordmark is shown, sized by the same rule.
  *
  * Sizes are integer `width`/`height` attributes plus inline px styles. A class
  * or a rem height is dropped by enough mail clients that the image then shows
@@ -32,15 +32,15 @@ export const TemplateBrandingLogo = ({ assetBaseUrl, className = 'mb-4' }: Templ
   const hasCustomBrandingLogo = branding.brandingEnabled && Boolean(branding.brandingLogo);
 
   if (!hasCustomBrandingLogo) {
-    const documensoLogoUrl = getEmailAssetUrl(assetBaseUrl, 'static/logo.png');
+    const hillLogoUrl = getEmailAssetUrl(assetBaseUrl, 'static/logo.png');
 
     return (
       <Img
-        src={documensoLogoUrl}
-        alt="Documenso Logo"
-        width={DOCUMENSO_LOGO_BOX.width}
-        height={DOCUMENSO_LOGO_BOX.height}
-        style={toPixelStyle(DOCUMENSO_LOGO_BOX)}
+        src={hillLogoUrl}
+        alt="Hill Sign"
+        width={HILL_LOGO_BOX.width}
+        height={HILL_LOGO_BOX.height}
+        style={toPixelStyle(HILL_LOGO_BOX)}
         className={className}
       />
     );

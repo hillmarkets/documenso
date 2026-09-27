@@ -1,4 +1,3 @@
-import { IS_BILLING_ENABLED } from '@documenso/lib/constants/app';
 import { AppError, AppErrorCode } from '@documenso/lib/errors/app-error';
 import { createEmbeddingPresignToken } from '@documenso/lib/server-only/embedding-presign/create-embedding-presign-token';
 import { getOrganisationClaimByTeamId } from '@documenso/lib/server-only/organisation/get-organisation-claims';
@@ -32,24 +31,26 @@ export const createEmbeddingPresignTokenRoute = procedure
 
       const { expiresIn, scope } = input;
 
-      if (IS_BILLING_ENABLED()) {
-        const token = requireTeamScopedToken(await getApiTokenByToken({ token: apiToken }), 'Embedding presign');
+      // Embedded authoring is a Documenso Enterprise feature. Upstream only checked the
+      // flag when billing was on, which it never is in this fork, so any API token could
+      // mint an authoring token. The flag is now always required, and no organisation
+      // has it.
+      const token = requireTeamScopedToken(await getApiTokenByToken({ token: apiToken }), 'Embedding presign');
 
-        if (!token.userId) {
-          throw new AppError(AppErrorCode.UNAUTHORIZED, {
-            message: 'Invalid API token',
-          });
-        }
-
-        const organisationClaim = await getOrganisationClaimByTeamId({
-          teamId: token.teamId,
+      if (!token.userId) {
+        throw new AppError(AppErrorCode.UNAUTHORIZED, {
+          message: 'Invalid API token',
         });
+      }
 
-        if (!organisationClaim.flags.embedAuthoring) {
-          throw new AppError(AppErrorCode.UNAUTHORIZED, {
-            message: 'Embedded Authoring is not included in your current plan. Please contact support.',
-          });
-        }
+      const organisationClaim = await getOrganisationClaimByTeamId({
+        teamId: token.teamId,
+      });
+
+      if (!organisationClaim.flags.embedAuthoring) {
+        throw new AppError(AppErrorCode.UNAUTHORIZED, {
+          message: 'Embedded authoring is not available.',
+        });
       }
 
       const presignToken = await createEmbeddingPresignToken({

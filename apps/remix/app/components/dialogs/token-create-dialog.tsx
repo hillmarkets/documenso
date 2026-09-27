@@ -203,7 +203,7 @@ export const TokenCreateDialog = ({ trigger, scope = TEAM_DIALOG_SCOPE, ...props
               </DialogTitle>
 
               <DialogDescription>
-                <Trans>Use API tokens to authenticate with the Documenso API.</Trans>
+                <Trans>Use API tokens to authenticate with the Hill Sign API.</Trans>
               </DialogDescription>
             </DialogHeader>
 
