@@ -11,6 +11,7 @@ import { Trans } from '@lingui/react/macro';
 import { Link, Outlet, redirect } from 'react-router';
 
 import { AppBanner } from '~/components/general/app-banner';
+import { AppFooter } from '~/components/general/app-footer';
 import { Header } from '~/components/general/app-header';
 import { GenericErrorLayout } from '~/components/general/generic-error-layout';
 import { OrganisationQuotaBanner } from '~/components/general/organisations/organisation-quota-banner';
@@ -127,6 +128,8 @@ export default function Layout({ loaderData, params, matches }: Route.ComponentP
           >
             <Outlet />
           </main>
+
+          {!hideHeader && layoutMode !== 'settings' && <AppFooter />}
         </div>
       </TeamProvider>
     </OrganisationProvider>

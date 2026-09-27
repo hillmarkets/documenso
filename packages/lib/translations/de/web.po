@@ -6041,6 +6041,10 @@ msgstr "Ausblenden"
 msgid "Hide field"
 msgstr ""
 
+#: apps/remix/app/components/general/app-footer.tsx
+msgid "Hill Sign is based on Documenso, © Documenso, Inc., licensed under AGPL-3.0. <0>Source code</0>"
+msgstr ""
+
 #: apps/remix/app/components/dialogs/account-delete-dialog.tsx
 msgid "Hill Sign will delete <0>all of your documents</0>, along with all of your completed documents, signatures, and all other resources belonging to your Account."
 msgstr ""

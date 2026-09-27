@@ -10,6 +10,7 @@ import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
 import { apiSignin } from './authentication';
+import { grantEmbedAuthoring } from './embed-authoring';
 
 const examplePdfBuffer = fs.readFileSync(path.join(__dirname, '../../../../assets/example.pdf'));
 
@@ -162,6 +163,7 @@ export const openEmbeddedEnvelopeEditor = async (
   }: OpenEmbeddedEnvelopeEditorOptions,
 ): Promise<TEnvelopeEditorSurface> => {
   const { user, team } = await seedUser();
+  await grantEmbedAuthoring(team.id);
 
   const envelopeToEdit =
     mode === 'edit'

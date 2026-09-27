@@ -6,9 +6,28 @@ import { seedUser } from '@documenso/prisma/seed/users';
 import { expect, test } from '@playwright/test';
 import type { APIRequestContext } from 'playwright-core';
 
+import { grantEmbedAuthoring } from '../../fixtures/embed-authoring';
+
 test.describe('Embedding Presign API', () => {
+  test('createEmbeddingPresignToken: is refused without the embedAuthoring flag', async ({ request }) => {
+    const { user, team } = await seedUser();
+
+    const { token } = await createApiToken({
+      userId: user.id,
+      teamId: team.id,
+      tokenName: 'test',
+      expiresIn: null,
+    });
+
+    const response = await createPresignToken(request, token);
+
+    expect(response.ok()).toBeFalsy();
+    expect(response.status()).toBe(401);
+  });
+
   test('createEmbeddingPresignToken: should create a token with default expiration', async ({ request }) => {
     const { user, team } = await seedUser();
+    await grantEmbedAuthoring(team.id);
 
     const { token } = await createApiToken({
       userId: user.id,
@@ -33,6 +52,7 @@ test.describe('Embedding Presign API', () => {
 
   test('createEmbeddingPresignToken: should create a token with custom expiration', async ({ request }) => {
     const { user, team } = await seedUser();
+    await grantEmbedAuthoring(team.id);
 
     const { token } = await createApiToken({
       userId: user.id,
@@ -61,6 +81,7 @@ test.describe('Embedding Presign API', () => {
     request,
   }) => {
     const { user, team } = await seedUser();
+    await grantEmbedAuthoring(team.id);
 
     const { token } = await createApiToken({
       userId: user.id,
@@ -87,6 +108,7 @@ test.describe('Embedding Presign API', () => {
 
   test('verifyEmbeddingPresignToken: should verify a valid token', async ({ request }) => {
     const { user, team } = await seedUser();
+    await grantEmbedAuthoring(team.id);
 
     const { token } = await createApiToken({
       userId: user.id,
@@ -122,6 +144,7 @@ test.describe('Embedding Presign API', () => {
 
   test('verifyEmbeddingPresignToken: should reject an invalid token', async ({ request }) => {
     const { user, team } = await seedUser();
+    await grantEmbedAuthoring(team.id);
 
     const { token } = await createApiToken({
       userId: user.id,
@@ -146,6 +169,7 @@ test.describe('Embedding Presign API', () => {
 
   test('verifyEmbeddingPresignToken: should verify a valid scoped token', async ({ request }) => {
     const { user, team } = await seedUser();
+    await grantEmbedAuthoring(team.id);
 
     const { token } = await createApiToken({
       userId: user.id,
@@ -184,6 +208,7 @@ test.describe('Embedding Presign API', () => {
 
   test('verifyEmbeddingPresignToken: should reject a scope mismatched token', async ({ request }) => {
     const { user, team } = await seedUser();
+    await grantEmbedAuthoring(team.id);
 
     const { token } = await createApiToken({
       userId: user.id,
