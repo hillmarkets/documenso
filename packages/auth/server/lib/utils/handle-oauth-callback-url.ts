@@ -20,6 +20,7 @@ import type { OAuthClientOptions } from '../../config';
 import { AuthenticationErrorCode } from '../errors/error-codes';
 import { onAuthorize } from './authorizer';
 import { getOpenIdConfiguration } from './open-id';
+import { resolveOAuthClaims } from './resolve-oauth-claims';
 
 type HandleOAuthCallbackUrlOptions = {
   c: Context;
@@ -191,7 +192,7 @@ export const validateOauth = async (options: HandleOAuthCallbackUrlOptions) => {
     throw new AppError(AppErrorCode.NOT_SETUP);
   }
 
-  const { token_endpoint } = await getOpenIdConfiguration(clientOptions.wellKnownUrl, {
+  const { token_endpoint, userinfo_endpoint } = await getOpenIdConfiguration(clientOptions.wellKnownUrl, {
     requiredScopes: clientOptions.scope,
   });
 
@@ -233,7 +234,13 @@ export const validateOauth = async (options: HandleOAuthCallbackUrlOptions) => {
   const idToken = tokens.idToken();
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const claims = decodeIdToken(tokens.idToken()) as Record<string, unknown>;
+  const idTokenClaims = decodeIdToken(tokens.idToken()) as Record<string, unknown>;
+
+  const claims = await resolveOAuthClaims({
+    idTokenClaims,
+    userInfoEndpoint: userinfo_endpoint,
+    accessToken,
+  });
 
   const email = claims.email;
   const name = claims.name;
