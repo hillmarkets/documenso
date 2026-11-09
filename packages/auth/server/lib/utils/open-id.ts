@@ -13,6 +13,8 @@ type GetOpenIdConfigurationOptions = {
   requiredScopes?: string[];
 };
 
+const isHttpsUrl = (value: string) => URL.canParse(value) && new URL(value).protocol === 'https:';
+
 export const getOpenIdConfiguration = async (
   wellKnownUrl: string,
   options: GetOpenIdConfigurationOptions = {},
@@ -39,6 +41,12 @@ export const getOpenIdConfiguration = async (
 
   if (unsupportedScopes.length > 0) {
     throw new Error(`Requested scopes not supported by provider: ${unsupportedScopes.join(', ')}`);
+  }
+
+  // The access token is sent to this endpoint, so only trust it over https.
+  // Otherwise ignore it and rely on the ID token claims.
+  if (config.userinfo_endpoint && !isHttpsUrl(config.userinfo_endpoint)) {
+    config.userinfo_endpoint = undefined;
   }
 
   return config;

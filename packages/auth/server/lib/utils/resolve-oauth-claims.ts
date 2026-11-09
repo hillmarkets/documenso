@@ -2,6 +2,8 @@ import { AppError } from '@documenso/lib/errors/app-error';
 
 import { AuthenticationErrorCode } from '../errors/error-codes';
 
+const USERINFO_TIMEOUT_MS = 10_000;
+
 type ResolveOAuthClaimsOptions = {
   /**
    * The decoded ID token claims.
@@ -36,20 +38,33 @@ export const resolveOAuthClaims = async (options: ResolveOAuthClaimsOptions): Pr
     return idTokenClaims;
   }
 
-  const response = await fetch(userInfoEndpoint, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/json',
-    },
-  });
+  let userInfo: unknown;
 
-  if (!response.ok) {
+  try {
+    const response = await fetch(userInfoEndpoint, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(USERINFO_TIMEOUT_MS),
+    });
+
+    if (!response.ok) {
+      throw new AppError(AuthenticationErrorCode.InvalidRequest, {
+        message: `Failed to fetch UserInfo: ${response.status}`,
+      });
+    }
+
+    userInfo = await response.json();
+  } catch (err) {
+    if (err instanceof AppError) {
+      throw err;
+    }
+
     throw new AppError(AuthenticationErrorCode.InvalidRequest, {
-      message: `Failed to fetch UserInfo: ${response.status}`,
+      message: 'Failed to fetch UserInfo',
     });
   }
-
-  const userInfo: unknown = await response.json();
 
   if (typeof userInfo !== 'object' || userInfo === null) {
     throw new AppError(AuthenticationErrorCode.InvalidRequest, {
@@ -59,20 +74,29 @@ export const resolveOAuthClaims = async (options: ResolveOAuthClaimsOptions): Pr
 
   const userInfoClaims = userInfo as Record<string, unknown>;
 
-  if (typeof idTokenClaims.sub !== 'string' || userInfoClaims.sub !== idTokenClaims.sub) {
+  if (typeof idTokenClaims.sub !== 'string' || idTokenClaims.sub === '' || userInfoClaims.sub !== idTokenClaims.sub) {
     throw new AppError(AuthenticationErrorCode.InvalidRequest, {
       message: 'UserInfo sub does not match ID token sub',
     });
   }
 
   // Keep the email and its verification flag from the same source so a verified
-  // flag from one document never vouches for an email from the other.
-  const emailSource = typeof userInfoClaims.email === 'string' ? userInfoClaims : idTokenClaims;
+  // flag from one document never vouches for a different email from the other.
+  // The same email (ignoring case) is the same source, so a verified ID token
+  // email is kept when UserInfo repeats it or omits email_verified.
+  const sameEmail =
+    typeof idTokenClaims.email === 'string' &&
+    typeof userInfoClaims.email === 'string' &&
+    idTokenClaims.email.toLowerCase() === userInfoClaims.email.toLowerCase();
+
+  const emailSource = typeof userInfoClaims.email === 'string' && !sameEmail ? userInfoClaims : idTokenClaims;
 
   return {
     ...idTokenClaims,
     name: userInfoClaims.name ?? idTokenClaims.name,
     email: emailSource.email,
-    email_verified: emailSource.email_verified,
+    email_verified: sameEmail
+      ? (idTokenClaims.email_verified ?? userInfoClaims.email_verified)
+      : emailSource.email_verified,
   };
 };

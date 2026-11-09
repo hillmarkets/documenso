@@ -1,3 +1,4 @@
+import { AppError } from '@documenso/lib/errors/app-error';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { resolveOAuthClaims } from './resolve-oauth-claims';
@@ -5,7 +6,7 @@ import { resolveOAuthClaims } from './resolve-oauth-claims';
 const USERINFO_ENDPOINT = 'https://auth.example.com/oauth2/userinfo';
 
 const mockUserInfo = (body: unknown, status = 200) => {
-  const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status }));
+  const fetchMock = vi.fn().mockImplementation(async () => new Response(JSON.stringify(body), { status }));
 
   vi.stubGlobal('fetch', fetchMock);
 
@@ -107,5 +108,96 @@ describe('resolveOAuthClaims', () => {
     await expect(
       resolveOAuthClaims({ idTokenClaims: { sub: 'abc' }, userInfoEndpoint: USERINFO_ENDPOINT, accessToken: 'token' }),
     ).rejects.toThrow('Failed to fetch UserInfo: 401');
+  });
+
+  it('rejects when the ID token sub is missing or not a string', async () => {
+    mockUserInfo({ sub: 'abc', email: 'a@example.com', name: 'A', email_verified: true });
+
+    for (const sub of [undefined, 123, null]) {
+      await expect(
+        resolveOAuthClaims({ idTokenClaims: { sub }, userInfoEndpoint: USERINFO_ENDPOINT, accessToken: 'token' }),
+      ).rejects.toThrow('UserInfo sub does not match ID token sub');
+    }
+  });
+
+  it('rejects a numeric UserInfo sub against a string ID token sub', async () => {
+    mockUserInfo({ sub: 123, email: 'a@example.com', name: 'A', email_verified: true });
+
+    await expect(
+      resolveOAuthClaims({ idTokenClaims: { sub: '123' }, userInfoEndpoint: USERINFO_ENDPOINT, accessToken: 'token' }),
+    ).rejects.toThrow('UserInfo sub does not match ID token sub');
+  });
+
+  it('rejects an empty sub even when both documents agree', async () => {
+    mockUserInfo({ sub: '', email: 'a@example.com', name: 'A', email_verified: true });
+
+    await expect(
+      resolveOAuthClaims({ idTokenClaims: { sub: '' }, userInfoEndpoint: USERINFO_ENDPOINT, accessToken: 'token' }),
+    ).rejects.toThrow('UserInfo sub does not match ID token sub');
+  });
+
+  it('wraps a non-JSON UserInfo body in an AppError', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('<html>nope</html>', { status: 200 })));
+
+    const promise = resolveOAuthClaims({
+      idTokenClaims: { sub: 'abc' },
+      userInfoEndpoint: USERINFO_ENDPOINT,
+      accessToken: 'token',
+    });
+
+    await expect(promise).rejects.toBeInstanceOf(AppError);
+    await expect(promise).rejects.toThrow('Failed to fetch UserInfo');
+  });
+
+  it('wraps a timeout in an AppError and passes an abort signal', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new DOMException('timed out', 'TimeoutError'));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const promise = resolveOAuthClaims({
+      idTokenClaims: { sub: 'abc' },
+      userInfoEndpoint: USERINFO_ENDPOINT,
+      accessToken: 'token',
+    });
+
+    await expect(promise).rejects.toBeInstanceOf(AppError);
+    await expect(promise).rejects.toThrow('Failed to fetch UserInfo');
+    expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('keeps the verified ID token email when UserInfo returns it in a different case', async () => {
+    mockUserInfo({ sub: 'abc', email: 'A@Example.com', name: 'A', email_verified: false });
+
+    const claims = await resolveOAuthClaims({
+      idTokenClaims: { sub: 'abc', email: 'a@example.com', email_verified: true },
+      userInfoEndpoint: USERINFO_ENDPOINT,
+      accessToken: 'token',
+    });
+
+    expect(claims).toMatchObject({ email: 'a@example.com', email_verified: true });
+  });
+
+  it('keeps the verified ID token email when UserInfo repeats it without email_verified', async () => {
+    mockUserInfo({ sub: 'abc', email: 'a@example.com', name: 'A' });
+
+    const claims = await resolveOAuthClaims({
+      idTokenClaims: { sub: 'abc', email: 'a@example.com', email_verified: true },
+      userInfoEndpoint: USERINFO_ENDPOINT,
+      accessToken: 'token',
+    });
+
+    expect(claims).toMatchObject({ email: 'a@example.com', email_verified: true });
+  });
+
+  it('never marks a matching email verified when neither document says so', async () => {
+    mockUserInfo({ sub: 'abc', email: 'a@example.com', name: 'A' });
+
+    const claims = await resolveOAuthClaims({
+      idTokenClaims: { sub: 'abc', email: 'a@example.com' },
+      userInfoEndpoint: USERINFO_ENDPOINT,
+      accessToken: 'token',
+    });
+
+    expect(claims.email_verified).toBeUndefined();
   });
 });
