@@ -3,6 +3,7 @@ import { z } from 'zod';
 const ZOpenIdConfigurationSchema = z.object({
   authorization_endpoint: z.string(),
   token_endpoint: z.string(),
+  userinfo_endpoint: z.string().optional(),
   scopes_supported: z.array(z.string()).optional(),
 });
 
@@ -11,6 +12,8 @@ type OpenIdConfiguration = z.infer<typeof ZOpenIdConfigurationSchema>;
 type GetOpenIdConfigurationOptions = {
   requiredScopes?: string[];
 };
+
+const isHttpsUrl = (value: string) => URL.canParse(value) && new URL(value).protocol === 'https:';
 
 export const getOpenIdConfiguration = async (
   wellKnownUrl: string,
@@ -38,6 +41,12 @@ export const getOpenIdConfiguration = async (
 
   if (unsupportedScopes.length > 0) {
     throw new Error(`Requested scopes not supported by provider: ${unsupportedScopes.join(', ')}`);
+  }
+
+  // The access token is sent to this endpoint, so only trust it over https.
+  // Otherwise ignore it and rely on the ID token claims.
+  if (config.userinfo_endpoint && !isHttpsUrl(config.userinfo_endpoint)) {
+    config.userinfo_endpoint = undefined;
   }
 
   return config;
