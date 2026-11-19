@@ -11,7 +11,7 @@ export type GetServerLimitsOptions = {
 /**
  * Usage allowances for a team the user belongs to. Self-hosted instances have no
  * billing, so everything is unlimited apart from the organisation claim's
- * envelope item count.
+ * envelope item and content counts.
  */
 export const getServerLimits = async ({ userId, teamId }: GetServerLimitsOptions): Promise<TTeamLimits> => {
   const organisation = await prisma.organisation.findFirst({
@@ -20,7 +20,9 @@ export const getServerLimits = async ({ userId, teamId }: GetServerLimitsOptions
       members: { some: { userId } },
     },
     select: {
-      organisationClaim: { select: { envelopeItemCount: true } },
+      organisationClaim: {
+        select: { envelopeItemCount: true, envelopeContentCount: true, envelopeContentImageCount: true },
+      },
     },
   });
 
@@ -30,5 +32,11 @@ export const getServerLimits = async ({ userId, teamId }: GetServerLimitsOptions
     });
   }
 
-  return buildTeamLimits(organisation.organisationClaim.envelopeItemCount);
+  const { envelopeItemCount, envelopeContentCount, envelopeContentImageCount } = organisation.organisationClaim;
+
+  return buildTeamLimits({
+    maximumEnvelopeItemCount: envelopeItemCount,
+    maximumEnvelopeContentCount: envelopeContentCount,
+    maximumEnvelopeContentImageCount: envelopeContentImageCount,
+  });
 };

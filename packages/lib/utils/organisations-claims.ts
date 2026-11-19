@@ -1,4 +1,5 @@
 import type { SubscriptionClaim } from '@prisma/client';
+import { DEFAULT_ENVELOPE_CONTENT_COUNT, DEFAULT_ENVELOPE_CONTENT_IMAGE_COUNT } from '../constants/envelope-content';
 import { DEFAULT_MINIMUM_ENVELOPE_ITEM_COUNT, DEFAULT_RECIPIENT_COUNT } from '../types/limits';
 
 export const generateDefaultSubscriptionClaim = (): Omit<
@@ -11,6 +12,8 @@ export const generateDefaultSubscriptionClaim = (): Omit<
     memberCount: 1,
     envelopeItemCount: DEFAULT_MINIMUM_ENVELOPE_ITEM_COUNT,
     recipientCount: DEFAULT_RECIPIENT_COUNT,
+    envelopeContentCount: DEFAULT_ENVELOPE_CONTENT_COUNT,
+    envelopeContentImageCount: DEFAULT_ENVELOPE_CONTENT_IMAGE_COUNT,
     locked: false,
     flags: {},
 

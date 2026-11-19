@@ -22,6 +22,8 @@ export const ZOrganisationSchema = OrganisationSchema.pick({
     memberCount: true,
     recipientCount: true,
     envelopeItemCount: true,
+    envelopeContentCount: true,
+    envelopeContentImageCount: true,
     flags: true,
   }),
 });

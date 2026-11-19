@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { DEFAULT_ENVELOPE_CONTENT_COUNT, DEFAULT_ENVELOPE_CONTENT_IMAGE_COUNT } from '../constants/envelope-content';
+
 /**
  * Per-team usage allowances. `Infinity` means unlimited; every self-hosted
  * organisation is unlimited except for `maximumEnvelopeItemCount`, which is an
@@ -17,6 +19,8 @@ export const ZTeamLimitsSchema = z.object({
   quota: ZUsageAllowanceSchema,
   remaining: ZUsageAllowanceSchema,
   maximumEnvelopeItemCount: z.number(),
+  maximumEnvelopeContentCount: z.number(),
+  maximumEnvelopeContentImageCount: z.number(),
 });
 
 export type TTeamLimits = z.infer<typeof ZTeamLimitsSchema>;
@@ -38,8 +42,22 @@ export const DEFAULT_MINIMUM_ENVELOPE_ITEM_COUNT = 5;
  */
 export const DEFAULT_RECIPIENT_COUNT = 20;
 
-export const buildTeamLimits = (maximumEnvelopeItemCount: number): TTeamLimits => ({
+export type TClaimLimits = Pick<
+  TTeamLimits,
+  'maximumEnvelopeItemCount' | 'maximumEnvelopeContentCount' | 'maximumEnvelopeContentImageCount'
+>;
+
+export const buildTeamLimits = (claimLimits: TClaimLimits): TTeamLimits => ({
   quota: UNLIMITED_USAGE,
   remaining: UNLIMITED_USAGE,
-  maximumEnvelopeItemCount,
+  ...claimLimits,
 });
+
+/**
+ * Values the UI renders with before the organisation claim is known.
+ */
+export const DEFAULT_CLAIM_LIMITS: TClaimLimits = {
+  maximumEnvelopeItemCount: DEFAULT_MINIMUM_ENVELOPE_ITEM_COUNT,
+  maximumEnvelopeContentCount: DEFAULT_ENVELOPE_CONTENT_COUNT,
+  maximumEnvelopeContentImageCount: DEFAULT_ENVELOPE_CONTENT_IMAGE_COUNT,
+};

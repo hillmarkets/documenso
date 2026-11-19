@@ -5,6 +5,7 @@ import { OrganisationGroupType, OrganisationMemberInviteStatus } from '@prisma/c
 import { AppError, AppErrorCode } from '../../errors/app-error';
 import { jobs } from '../../jobs/client';
 import { generateDatabaseId } from '../../universal/id';
+import { findUserByProvidedEmail } from '../user/find-user-by-provided-email';
 
 export type AcceptOrganisationInvitationOptions = {
   token: string;
@@ -42,17 +43,7 @@ export const acceptOrganisationInvitation = async ({ token }: AcceptOrganisation
     return;
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      email: {
-        equals: organisationMemberInvite.email,
-        mode: 'insensitive',
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
+  const user = await findUserByProvidedEmail({ email: organisationMemberInvite.email });
 
   if (!user) {
     throw new AppError(AppErrorCode.NOT_FOUND, {

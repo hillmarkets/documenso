@@ -48,7 +48,11 @@ export default function Layout() {
   return (
     <div key={team.url} className={cn({ 'md:flex md:min-h-0 md:flex-1 md:flex-col': layoutMode === 'settings' })}>
       <TrpcProvider headers={trpcHeaders}>
-        <LimitsProvider maximumEnvelopeItemCount={organisation?.organisationClaim.envelopeItemCount}>
+        <LimitsProvider
+          maximumEnvelopeItemCount={organisation?.organisationClaim.envelopeItemCount}
+          maximumEnvelopeContentCount={organisation?.organisationClaim.envelopeContentCount}
+          maximumEnvelopeContentImageCount={organisation?.organisationClaim.envelopeContentImageCount}
+        >
           <Outlet />
         </LimitsProvider>
       </TrpcProvider>
