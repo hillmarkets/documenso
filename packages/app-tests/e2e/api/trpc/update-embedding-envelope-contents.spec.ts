@@ -15,6 +15,7 @@ import { type APIRequestContext, expect, test } from '@playwright/test';
 import type { Team } from '@prisma/client';
 
 import { createGifLabelledAsPng, createImageFile, type TestImageFile } from '../../fixtures/contents';
+import { grantEmbedAuthoring } from '../../fixtures/embed-authoring';
 
 /**
  * The embedded editor saves everything in one request when the envelope is
@@ -35,6 +36,8 @@ test.describe.configure({
  */
 const setupEmbeddedDocument = async (request: APIRequestContext) => {
   const { user, team } = await seedUser();
+
+  await grantEmbedAuthoring(team.id);
 
   const document = await seedBlankDocument(user, team.id, { internalVersion: 2 });
 

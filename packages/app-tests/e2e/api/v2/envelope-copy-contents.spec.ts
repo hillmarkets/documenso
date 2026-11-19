@@ -21,6 +21,7 @@ import { type APIRequestContext, expect, test } from '@playwright/test';
 import { EnvelopeType, FieldType, RecipientRole } from '@prisma/client';
 
 import { createImageFile } from '../../fixtures/contents';
+import { grantEmbedAuthoring } from '../../fixtures/embed-authoring';
 
 const WEBAPP_BASE_URL = NEXT_PUBLIC_WEBAPP_URL();
 const baseUrl = `${WEBAPP_BASE_URL}/api/v2-beta`;
@@ -251,6 +252,8 @@ test.describe('Copy contents to new envelopes', () => {
 
   test.beforeEach(async () => {
     const { user, team } = await seedUser();
+
+    await grantEmbedAuthoring(team.id);
 
     teamName = team.name;
 
