@@ -14,10 +14,14 @@ import type { TEnvelopeFieldAndMeta } from '@documenso/lib/types/field-meta';
 import { fireAndForget } from '@documenso/lib/universal/fire-and-forget';
 import { getBrandingLogoDimensions } from '@documenso/lib/utils/branding-logo-size';
 import { extractDerivedDocumentMeta } from '@documenso/lib/utils/document';
-import { buildEmbeddedEditorOptions, buildEmbeddedFeatures } from '@documenso/lib/utils/embed-config';
+import {
+  buildEmbeddedEditorOptions,
+  buildEmbeddedFeatures,
+  getPendingEmbedImagesToUpload,
+} from '@documenso/lib/utils/embed-config';
 import { prisma } from '@documenso/prisma';
 import { trpc } from '@documenso/trpc/react';
-import type { TCreateEnvelopePayload } from '@documenso/trpc/server/envelope-router/create-envelope.types';
+import type { TCreateEmbeddingEnvelopePayload } from '@documenso/trpc/server/embedding-router/create-embedding-envelope.types';
 import { Spinner } from '@documenso/ui/primitives/spinner';
 import { useToast } from '@documenso/ui/primitives/use-toast';
 import { Trans, useLingui } from '@lingui/react/macro';
@@ -173,7 +177,7 @@ const EnvelopeCreatePage = ({ embedAuthoringOptions }: EnvelopeCreatePageProps) 
 
   const buildCreateEnvelopeRequest = (
     envelope: Omit<TEditorEnvelope, 'id'>,
-  ): { payload: TCreateEnvelopePayload; files: File[] } => {
+  ): { payload: TCreateEmbeddingEnvelopePayload; files: File[]; contentImages: File[] } => {
     const sortedItems = [...envelope.envelopeItems].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
     const itemIdToIndex = new Map<string, number>();
@@ -225,7 +229,27 @@ const EnvelopeCreatePage = ({ embedAuthoringOptions }: EnvelopeCreatePageProps) 
       };
     });
 
-    const payload: TCreateEnvelopePayload = {
+    const imagesToUpload = getPendingEmbedImagesToUpload(envelope.contents);
+
+    const contents = envelope.contents.map((content) => {
+      const image = imagesToUpload.find((imageToUpload) => imageToUpload.id === content.dataContentId);
+
+      // Nothing is uploaded before the envelope exists, so every image must
+      // go along with the request.
+      if (content.dataContentId && !image) {
+        throw new Error(`Content "${content.id}" has no image data`);
+      }
+
+      return {
+        identifier: itemIdToIndex.get(content.envelopeItemId),
+        contentMeta: content.contentMeta,
+        imageIndex: image?.index,
+      };
+    });
+
+    const contentImages = imagesToUpload.map((image) => image.file);
+
+    const payload: TCreateEmbeddingEnvelopePayload = {
       title: envelope.title,
       type: envelope.type,
       externalId: envelope.externalId ?? undefined,
@@ -238,6 +262,7 @@ const EnvelopeCreatePage = ({ embedAuthoringOptions }: EnvelopeCreatePageProps) 
         : undefined,
       folderId: envelope.folderId ?? undefined,
       recipients,
+      contents,
       attachments: envelope.attachments,
       meta: {
         ...envelope.documentMeta,
@@ -256,7 +281,7 @@ const EnvelopeCreatePage = ({ embedAuthoringOptions }: EnvelopeCreatePageProps) 
       },
     };
 
-    return { payload, files };
+    return { payload, files, contentImages };
   };
 
   const createEmbeddedEnvelope = async (envelopeWithoutId: Omit<TEditorEnvelope, 'id'>) => {
@@ -267,13 +292,17 @@ const EnvelopeCreatePage = ({ embedAuthoringOptions }: EnvelopeCreatePageProps) 
     setIsCreatingEnvelope(true);
 
     try {
-      const { payload, files } = buildCreateEnvelopeRequest(envelopeWithoutId);
+      const { payload, files, contentImages } = buildCreateEnvelopeRequest(envelopeWithoutId);
 
       const formData = new FormData();
       formData.append('payload', JSON.stringify(payload));
 
       for (const file of files) {
         formData.append('files', file);
+      }
+
+      for (const contentImage of contentImages) {
+        formData.append('contentImages', contentImage);
       }
 
       const { id } = await createEmbeddingEnvelope(formData);
@@ -379,6 +408,7 @@ const EnvelopeCreatePage = ({ embedAuthoringOptions }: EnvelopeCreatePageProps) 
       },
       recipients,
       fields: [],
+      contents: [],
       envelopeItems: [],
       directLink: null,
       team: {
@@ -399,7 +429,7 @@ const EnvelopeCreatePage = ({ embedAuthoringOptions }: EnvelopeCreatePageProps) 
   return (
     <div className="relative min-h-screen min-w-screen">
       {isCreatingEnvelope && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background">
           <Spinner />
 
           <p className="mt-2 text-muted-foreground text-sm">
@@ -413,7 +443,7 @@ const EnvelopeCreatePage = ({ embedAuthoringOptions }: EnvelopeCreatePageProps) 
       )}
 
       {createdEnvelope && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background">
           <div className="mx-auto w-full max-w-md text-center">
             <CheckCircle2Icon className="mx-auto h-16 w-16 text-primary" />
 

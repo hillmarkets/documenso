@@ -23,6 +23,12 @@ export type TrpcRouteMeta = {
     successDescription?: string;
     errorResponses?: number[] | Record<number, string>;
   };
+  /**
+   * Embed sessions exist only to let a recipient sign inside an iframe and are
+   * rejected by `authenticatedProcedure` (and downgraded to anonymous by
+   * `maybeAuthenticatedProcedure`) unless the route opts in here.
+   */
+  allowEmbedSession?: boolean;
 } & Record<string, unknown>;
 
 export const t = initTRPC

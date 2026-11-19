@@ -6,6 +6,7 @@ import { createUserRoute } from './create-user';
 import { deleteDocumentRoute } from './delete-document';
 import { deleteOrganisationRoute } from './delete-organisation';
 import { deleteAdminOrganisationMemberRoute } from './delete-organisation-member';
+import { deleteRecipientRoute } from './delete-recipient';
 import { deleteSubscriptionClaimRoute } from './delete-subscription-claim';
 import { deleteAdminTeamMemberRoute } from './delete-team-member';
 import { deleteUserRoute } from './delete-user';
@@ -83,6 +84,7 @@ export const adminRouter = router({
   },
   recipient: {
     update: updateRecipientRoute,
+    delete: deleteRecipientRoute,
   },
   emailTransport: {
     find: findEmailTransportsRoute,

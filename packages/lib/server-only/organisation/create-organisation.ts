@@ -170,6 +170,8 @@ export const createOrganisationClaimUpsertData = (
       },
       envelopeItemCount: subscriptionClaim.envelopeItemCount,
       recipientCount: subscriptionClaim.recipientCount,
+      envelopeContentCount: subscriptionClaim.envelopeContentCount,
+      envelopeContentImageCount: subscriptionClaim.envelopeContentImageCount,
       teamCount: subscriptionClaim.teamCount,
       memberCount: subscriptionClaim.memberCount,
       documentRateLimits: subscriptionClaim.documentRateLimits ?? [],

@@ -142,7 +142,11 @@ export default function AuthoringLayout() {
     <OrganisationProvider organisation={organisation}>
       <TeamProvider team={team}>
         <TrpcProvider headers={{ authorization: `Bearer ${token}`, 'x-team-Id': team.id.toString() }}>
-          <LimitsProvider maximumEnvelopeItemCount={organisationClaim.envelopeItemCount}>
+          <LimitsProvider
+            maximumEnvelopeItemCount={organisationClaim.envelopeItemCount}
+            maximumEnvelopeContentCount={organisationClaim.envelopeContentCount}
+            maximumEnvelopeContentImageCount={organisationClaim.envelopeContentImageCount}
+          >
             {hasFinishedInit ? (
               <Outlet />
             ) : (

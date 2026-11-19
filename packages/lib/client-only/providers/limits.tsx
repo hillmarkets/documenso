@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo } from 'react';
 
-import { buildTeamLimits, DEFAULT_MINIMUM_ENVELOPE_ITEM_COUNT, type TTeamLimits } from '../../types/limits';
+import { buildTeamLimits, DEFAULT_CLAIM_LIMITS, type TTeamLimits } from '../../types/limits';
 
 export type LimitsContextValue = TTeamLimits & {
   /**
@@ -23,21 +23,25 @@ export const useLimits = () => {
 };
 
 export type LimitsProviderProps = {
-  /** From the organisation claim. Falls back to the UI default while loading. */
+  /** From the organisation claim. Each falls back to the UI default while loading. */
   maximumEnvelopeItemCount?: number;
+  maximumEnvelopeContentCount?: number;
+  maximumEnvelopeContentImageCount?: number;
   children?: React.ReactNode;
 };
 
 export const LimitsProvider = ({
-  maximumEnvelopeItemCount = DEFAULT_MINIMUM_ENVELOPE_ITEM_COUNT,
+  maximumEnvelopeItemCount = DEFAULT_CLAIM_LIMITS.maximumEnvelopeItemCount,
+  maximumEnvelopeContentCount = DEFAULT_CLAIM_LIMITS.maximumEnvelopeContentCount,
+  maximumEnvelopeContentImageCount = DEFAULT_CLAIM_LIMITS.maximumEnvelopeContentImageCount,
   children,
 }: LimitsProviderProps) => {
   const value = useMemo<LimitsContextValue>(
     () => ({
-      ...buildTeamLimits(maximumEnvelopeItemCount),
+      ...buildTeamLimits({ maximumEnvelopeItemCount, maximumEnvelopeContentCount, maximumEnvelopeContentImageCount }),
       refreshLimits: async () => {},
     }),
-    [maximumEnvelopeItemCount],
+    [maximumEnvelopeItemCount, maximumEnvelopeContentCount, maximumEnvelopeContentImageCount],
   );
 
   return <LimitsContext.Provider value={value}>{children}</LimitsContext.Provider>;

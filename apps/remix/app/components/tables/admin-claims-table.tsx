@@ -33,11 +33,16 @@ export const AdminClaimsTable = () => {
 
   const parsedSearchParams = ZUrlSearchParamsSchema.parse(Object.fromEntries(searchParams ?? []));
 
-  const { data, isLoading, isLoadingError } = trpc.admin.claims.find.useQuery({
-    query: parsedSearchParams.query,
-    page: parsedSearchParams.page,
-    perPage: parsedSearchParams.perPage,
-  });
+  const { data, isLoading, isLoadingError } = trpc.admin.claims.find.useQuery(
+    {
+      query: parsedSearchParams.query,
+      page: parsedSearchParams.page,
+      perPage: parsedSearchParams.perPage,
+    },
+    {
+      placeholderData: (previousData) => previousData,
+    },
+  );
 
   const onPaginationChange = (page: number, perPage: number) => {
     updateSearchParams({
