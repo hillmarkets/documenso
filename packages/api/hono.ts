@@ -28,9 +28,23 @@ tsRestHonoApp
 // A catch-all route rather than `mount('/')`: since hono 4.13.16, `mount()` strips
 // the parent `/api/v1` prefix before calling the handler, and the ts-rest contract
 // matches on the full `/api/v1/...` path.
+//
+// The request is rebuilt from its parts: under `@hono/node-server`, `c.req.raw` is a
+// lightweight request that ts-rest's `Request` subclass cannot wrap or copy
+// ("Cannot read private member #state" / "Illegal invocation").
 tsRestHonoApp.all('/*', async (c) => {
+  const { method, url, headers } = c.req.raw;
+
+  const hasBody = method !== 'GET' && method !== 'HEAD';
+
+  const request = new Request(url, {
+    method,
+    headers,
+    body: hasBody ? await c.req.arrayBuffer() : undefined,
+  });
+
   return fetchRequestHandler({
-    request: c.req.raw,
+    request,
     contract: ApiContractV1,
     router: ApiContractV1Implementation,
     options: {
