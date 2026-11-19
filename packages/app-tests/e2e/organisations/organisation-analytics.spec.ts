@@ -177,7 +177,7 @@ test('[ORG ANALYTICS]: only organisation admins can access', async ({ page }) =>
 
   await page.keyboard.press('Escape');
 
-  await page.getByRole('link', { name: 'View organisation analytics' }).click();
+  await page.getByRole('link', { name: 'View organization analytics' }).click();
   await page.waitForURL(new RegExp(`/o/${organisation.url}/analytics(?:\\?.*)?$`));
 
   const adminResponse = await requestOverview(page, organisation.id);

@@ -68,7 +68,7 @@ test('[EMBED_POPUP_AUTH]: signs in via account popup and unlocks the embed', asy
 
   expect(popup.url()).not.toContain('nonce');
 
-  await expect(popup.getByRole('heading', { name: 'Sign in to Documenso to continue' })).toBeVisible();
+  await expect(popup.getByRole('heading', { name: 'Sign in to Hill Sign to continue' })).toBeVisible();
 
   await expect(page.getByText('Complete sign in in the popup window')).toBeVisible();
 

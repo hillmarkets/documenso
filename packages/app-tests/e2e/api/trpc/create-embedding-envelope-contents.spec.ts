@@ -18,6 +18,7 @@ import { EnvelopeType, FieldType, RecipientRole, type Team } from '@prisma/clien
 import type { z } from 'zod';
 
 import { createGifLabelledAsPng, createImageFile, type TestImageFile } from '../../fixtures/contents';
+import { grantEmbedAuthoring } from '../../fixtures/embed-authoring';
 
 const WEBAPP_BASE_URL = NEXT_PUBLIC_WEBAPP_URL();
 const baseUrl = `${WEBAPP_BASE_URL}/api/v2-beta`;
@@ -197,6 +198,8 @@ test.describe('Create envelope with contents', () => {
     const seeded = await seedUser();
 
     team = seeded.team;
+
+    await grantEmbedAuthoring(team.id);
 
     ({ token } = await createApiToken({
       userId: seeded.user.id,
