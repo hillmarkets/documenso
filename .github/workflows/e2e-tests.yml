@@ -51,7 +51,7 @@ jobs:
       matrix:
         include:
           - name: api
-            args: --project=api --project=license
+            args: --project=api --project=license --max-failures=0
           - name: ui-1
             args: --project=ui --shard=1/6
           - name: ui-2
