@@ -11,11 +11,11 @@ export type AccountDisabledEmailTemplateProps = Partial<TemplateAccountDisabledP
 
 export const AccountDisabledEmailTemplate = ({
   assetBaseUrl = 'http://localhost:3002',
-  supportEmail = 'support@documenso.com',
+  supportEmail = 'support@hill.com',
 }: AccountDisabledEmailTemplateProps) => {
   const { _ } = useLingui();
 
-  const previewText = msg`Your Documenso account has been disabled`;
+  const previewText = msg`Your Hill Sign account has been disabled`;
 
   return (
     <Html>
@@ -26,7 +26,7 @@ export const AccountDisabledEmailTemplate = ({
         <Section>
           <Container className="mx-auto mt-8 mb-2 max-w-xl rounded-lg border border-border border-solid p-4 backdrop-blur-sm">
             <Section>
-              <Img src={getEmailAssetUrl(assetBaseUrl, 'static/logo.png')} alt="Documenso Logo" className="mb-4 h-6" />
+              <Img src={getEmailAssetUrl(assetBaseUrl, 'static/logo.png')} alt="Hill Sign Logo" className="mb-4 h-6" />
 
               <TemplateAccountDisabled assetBaseUrl={assetBaseUrl} supportEmail={supportEmail} />
             </Section>

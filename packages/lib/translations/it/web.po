@@ -3443,7 +3443,7 @@ msgid "Copy your token now. For security reasons you will not be able to see it 
 msgstr ""
 
 #: apps/remix/app/routes/embed+/auth+/popup.tsx
-msgid "Could not connect to the Documenso embed. Close this window and try again."
+msgid "Could not connect to the Hill Sign embed. Close this window and try again."
 msgstr ""
 
 #: apps/remix/app/components/general/organisation-usage-reset-button.tsx
@@ -5747,10 +5747,6 @@ msgstr "Hanno firmato tutti"
 #: apps/remix/app/routes/_recipient+/sign.$token+/complete.tsx
 msgid "Everyone has signed! You will receive an email copy of the signed document."
 msgstr "Tutti hanno firmato! Riceverai una copia del documento firmato via email."
-
-#: packages/ui/components/document/document-visibility-select.tsx
-msgid "Examples"
-msgstr ""
 
 #: apps/remix/app/components/general/organisation-usage-panel.tsx
 msgid "Exceeded"
@@ -10357,7 +10353,7 @@ msgid "Session revoked"
 msgstr "Sessione revocata"
 
 #: apps/remix/app/routes/_authenticated+/settings+/security.sessions.tsx
-msgid "Sessions created by signing in to Documenso embedded on another website."
+msgid "Sessions created by signing in to Hill Sign embedded on another website."
 msgstr ""
 
 #: apps/remix/app/components/dialogs/session-logout-all-dialog.tsx
@@ -10567,7 +10563,7 @@ msgid "Sign in timed out. Please try again."
 msgstr ""
 
 #: apps/remix/app/routes/embed+/auth+/popup.tsx
-msgid "Sign in to Documenso to continue"
+msgid "Sign in to Hill Sign to continue"
 msgstr ""
 
 #: apps/remix/app/components/general/document-signing/document-signing-auth-dialog.tsx
@@ -12482,7 +12478,7 @@ msgid "This will sign you out of all other devices. You will need to sign in aga
 msgstr "Questa azione ti disconnetterà da tutti gli altri dispositivi. Dovrai accedere nuovamente su quei dispositivi per continuare a usare il tuo account."
 
 #: apps/remix/app/routes/embed+/auth+/popup.tsx
-msgid "This window must be opened from a Documenso embed."
+msgid "This window must be opened from a Hill Sign embed."
 msgstr ""
 
 #: apps/remix/app/components/tables/admin-document-logs-table.tsx
@@ -15157,11 +15153,6 @@ msgstr "Il tuo piano attuale include i seguenti canali di supporto:"
 msgid "Your direct signing templates"
 msgstr "I tuoi modelli di firma diretta"
 
-#: packages/email/templates/account-disabled.tsx
-#: packages/lib/jobs/definitions/emails/send-account-disabled-email.handler.ts
-msgid "Your Documenso account has been disabled"
-msgstr ""
-
 #: apps/remix/app/components/dialogs/ai-features-enable-dialog.tsx
 msgid "Your document content will be sent securely to our AI provider solely for detection and will not be stored or used for training."
 msgstr "Il contenuto del tuo documento sarà inviato in modo sicuro al nostro provider di IA esclusivamente per il rilevamento e non verrà archiviato né utilizzato per l’addestramento."
@@ -15258,6 +15249,11 @@ msgstr "La tua busta è stata distribuita con successo."
 #: apps/remix/app/components/dialogs/envelope-redistribute-dialog.tsx
 msgid "Your envelope has been resent successfully."
 msgstr "La tua busta è stata reinviata con successo."
+
+#: packages/email/templates/account-disabled.tsx
+#: packages/lib/jobs/definitions/emails/send-account-disabled-email.handler.ts
+msgid "Your Hill Sign account has been disabled"
+msgstr ""
 
 #: apps/remix/app/components/general/settings-upsell/branding-upsell.tsx
 msgid "Your logo on signing pages and emails"

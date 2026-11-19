@@ -85,17 +85,6 @@ export const DocumentVisibilityTooltip = () => {
             </Trans>
           </li>
         </ul>
-
-        <p>
-          <a
-            href="https://docs.documenso.com/docs/users/documents/advanced/document-visibility#examples"
-            target="_blank"
-            rel="noreferrer"
-            className="text-documenso-700 hover:text-documenso-600 hover:underline"
-          >
-            <Trans>Examples</Trans>
-          </a>
-        </p>
       </TooltipContent>
     </Tooltip>
   );
