@@ -297,7 +297,9 @@ export default function EmbedPlaygroundPage() {
     const hash = btoa(encodeURIComponent(JSON.stringify(hashData)));
 
     const basePath =
-      mode === 'create' ? '/embed/v2/authoring/envelope/create' : `/embed/v2/authoring/envelope/edit/${envelopeId}`;
+      mode === 'create'
+        ? '/embed/v2/authoring/envelope/create'
+        : `/embed/v2/authoring/envelope/edit/${encodeURIComponent(envelopeId)}`;
 
     const buildIframeSrc = (path: string, tokenValue: string, hashValue: string): string => {
       // Ensure the token is treated strictly as a query parameter value.
