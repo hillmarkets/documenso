@@ -3,7 +3,7 @@ import path from 'node:path';
 import { NEXT_PUBLIC_WEBAPP_URL } from '@documenso/lib/constants/app';
 import { createApiToken } from '@documenso/lib/server-only/public-api/create-api-token';
 import { prisma } from '@documenso/prisma';
-import { DocumentStatus, EnvelopeType, FieldType, RecipientRole } from '@documenso/prisma/client';
+import { DocumentStatus, EnvelopeType, FieldType, RecipientRole, SendStatus } from '@documenso/prisma/client';
 import { seedUser } from '@documenso/prisma/seed/users';
 import type {
   TCreateEnvelopePayload,
@@ -122,6 +122,16 @@ const distributeEnvelope = async (request: APIRequestContext, authToken: string,
   });
 
   expect(distributeRes.ok()).toBeTruthy();
+
+  // The signing email is sent by a background job, and order changes stay allowed until a
+  // recipient is marked as sent. Wait for it so the PENDING assertions don't race the job.
+  await expect
+    .poll(async () => {
+      const recipient = await prisma.recipient.findUniqueOrThrow({ where: { id: recipients[0].id } });
+
+      return recipient.sendStatus;
+    })
+    .toBe(SendStatus.SENT);
 };
 
 const updateEnvelopeItems = async (
