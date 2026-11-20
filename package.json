@@ -172,7 +172,24 @@
       "adm-zip": "^0.6.1"
     },
     "@prisma/config": {
-      "deepmerge-ts": "^8.0.2"
+      "deepmerge-ts": "^8.0.2",
+      "effect": "^3.22.1"
+    },
+    "@hono/node-server": "^2.1.8",
+    "mermaid": {
+      "katex": "^0.18.2"
+    },
+    "@opentelemetry/auto-instrumentations-node": {
+      "@opentelemetry/instrumentation-http": "^0.222.0"
+    },
+    "@hono/vite-dev-server": {
+      "minimatch": "^11.0.8"
+    },
+    "remix-flat-routes": {
+      "minimatch": "^11.0.8"
+    },
+    "@lingui/cli": {
+      "glob": "^14.0.6"
     }
   }
 }

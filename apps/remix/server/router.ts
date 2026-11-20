@@ -26,6 +26,7 @@ import type { Logger } from 'pino';
 import { aiRoute } from './api/ai/route';
 import { downloadRoute } from './api/download/download';
 import { filesRoute } from './api/files/files';
+import { bodyLimitMiddleware } from './body-limit-middleware';
 import { type AppContext, appContext } from './context';
 import { csrfMiddleware } from './csrf-middleware';
 import { appMiddleware } from './middleware';
@@ -93,6 +94,9 @@ app.use(async (c, next) => {
 
   await next();
 });
+
+// Reject oversized bodies before anything parses them. Must run after the logger.
+app.use('*', bodyLimitMiddleware);
 
 // CSRF: mount on every route that accepts a session cookie. Must run after the logger.
 // Not mounted on `/api/v1` (Authorization header only, see `authenticatedMiddleware`),

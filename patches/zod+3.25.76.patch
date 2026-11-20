@@ -1,0 +1,110 @@
+diff --git a/node_modules/zod/v3/helpers/parseUtil.cjs b/node_modules/zod/v3/helpers/parseUtil.cjs
+index 36cf2d8..b797101 100644
+--- a/node_modules/zod/v3/helpers/parseUtil.cjs
++++ b/node_modules/zod/v3/helpers/parseUtil.cjs
+@@ -37,7 +37,14 @@ const makeIssue = (params) => {
+ };
+ exports.makeIssue = makeIssue;
+ exports.EMPTY_PATH = [];
++const MAX_ISSUES_PER_PARSE = 1000;
+ function addIssueToContext(ctx, issueData) {
++    // Hill patch (GHSA-mrhx-c7xc-m3w5): stop recording issues past a cap so a huge
++    // invalid array cannot allocate one issue per element and exhaust memory. The
++    // parse still fails; only the tail of the issue list is dropped.
++    if (ctx.common.issues.length >= MAX_ISSUES_PER_PARSE) {
++        return;
++    }
+     const overrideMap = (0, errors_js_1.getErrorMap)();
+     const issue = (0, exports.makeIssue)({
+         issueData: issueData,
+diff --git a/node_modules/zod/v3/helpers/parseUtil.js b/node_modules/zod/v3/helpers/parseUtil.js
+index 91b2afb..8be4608 100644
+--- a/node_modules/zod/v3/helpers/parseUtil.js
++++ b/node_modules/zod/v3/helpers/parseUtil.js
+@@ -29,7 +29,14 @@ export const makeIssue = (params) => {
+     };
+ };
+ export const EMPTY_PATH = [];
++const MAX_ISSUES_PER_PARSE = 1000;
+ export function addIssueToContext(ctx, issueData) {
++    // Hill patch (GHSA-mrhx-c7xc-m3w5): stop recording issues past a cap so a huge
++    // invalid array cannot allocate one issue per element and exhaust memory. The
++    // parse still fails; only the tail of the issue list is dropped.
++    if (ctx.common.issues.length >= MAX_ISSUES_PER_PARSE) {
++        return;
++    }
+     const overrideMap = getErrorMap();
+     const issue = makeIssue({
+         issueData: issueData,
+diff --git a/node_modules/zod/v3/types.cjs b/node_modules/zod/v3/types.cjs
+index 11ed4df..bb14211 100644
+--- a/node_modules/zod/v3/types.cjs
++++ b/node_modules/zod/v3/types.cjs
+@@ -2301,7 +2301,14 @@ class ZodUnion extends ZodType {
+             for (const result of results) {
+                 if (result.result.status === "dirty") {
+                     // add issues from dirty option
+-                    ctx.common.issues.push(...result.ctx.common.issues);
++                    // Hill patch (GHSA-mrhx-c7xc-m3w5): merge child issues up to the same cap as
++                    // addIssueToContext, so unions cannot bypass it.
++                    for (const issue of result.ctx.common.issues) {
++                        if (ctx.common.issues.length >= 1000) {
++                            break;
++                        }
++                        ctx.common.issues.push(issue);
++                    }
+                     return result.result;
+                 }
+             }
+@@ -2361,7 +2368,14 @@ class ZodUnion extends ZodType {
+                 }
+             }
+             if (dirty) {
+-                ctx.common.issues.push(...dirty.ctx.common.issues);
++                // Hill patch (GHSA-mrhx-c7xc-m3w5): merge child issues up to the same cap as
++                // addIssueToContext, so unions cannot bypass it.
++                for (const issue of dirty.ctx.common.issues) {
++                    if (ctx.common.issues.length >= 1000) {
++                        break;
++                    }
++                    ctx.common.issues.push(issue);
++                }
+                 return dirty.result;
+             }
+             const unionErrors = issues.map((issues) => new ZodError_js_1.ZodError(issues));
+diff --git a/node_modules/zod/v3/types.js b/node_modules/zod/v3/types.js
+index 40b11c0..d0aebb2 100644
+--- a/node_modules/zod/v3/types.js
++++ b/node_modules/zod/v3/types.js
+@@ -2278,7 +2278,14 @@ export class ZodUnion extends ZodType {
+             for (const result of results) {
+                 if (result.result.status === "dirty") {
+                     // add issues from dirty option
+-                    ctx.common.issues.push(...result.ctx.common.issues);
++                    // Hill patch (GHSA-mrhx-c7xc-m3w5): merge child issues up to the same cap as
++                    // addIssueToContext, so unions cannot bypass it.
++                    for (const issue of result.ctx.common.issues) {
++                        if (ctx.common.issues.length >= 1000) {
++                            break;
++                        }
++                        ctx.common.issues.push(issue);
++                    }
+                     return result.result;
+                 }
+             }
+@@ -2338,7 +2345,14 @@ export class ZodUnion extends ZodType {
+                 }
+             }
+             if (dirty) {
+-                ctx.common.issues.push(...dirty.ctx.common.issues);
++                // Hill patch (GHSA-mrhx-c7xc-m3w5): merge child issues up to the same cap as
++                // addIssueToContext, so unions cannot bypass it.
++                for (const issue of dirty.ctx.common.issues) {
++                    if (ctx.common.issues.length >= 1000) {
++                        break;
++                    }
++                    ctx.common.issues.push(issue);
++                }
+                 return dirty.result;
+             }
+             const unionErrors = issues.map((issues) => new ZodError(issues));
